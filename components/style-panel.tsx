@@ -275,7 +275,7 @@ function ProfileTile({ profile, onToggle, onEdit, onDelete }: ProfileTileProps) 
             <button
               type="button"
               onClick={onEdit}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-2 min-h-[44px] text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
             >
               <Pencil className="size-3.5" />
               Edit
@@ -283,7 +283,7 @@ function ProfileTile({ profile, onToggle, onEdit, onDelete }: ProfileTileProps) 
             <button
               type="button"
               onClick={onDelete}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs text-[var(--error)] hover:text-[var(--error)] transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-2 min-h-[44px] text-xs text-[var(--error)] hover:text-[var(--error)] transition-colors"
             >
               <Trash2 className="size-3.5" />
               Delete

@@ -45,7 +45,7 @@ export function AppHeader({
           <button
             type="button"
             onClick={onToggleMobileDrawer}
-            className="md:hidden p-2 -ml-2 text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+            className="md:hidden p-2 -ml-2 min-w-[44px] min-h-[44px] inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
             aria-label="Open menu"
           >
             <Menu className="size-5" />
@@ -63,7 +63,7 @@ export function AppHeader({
             type="button"
             onClick={onToggleStylePanel}
             className={cn(
-              "hidden md:inline-flex p-2 rounded-lg transition-colors",
+              "hidden md:inline-flex items-center justify-center p-2 min-w-[44px] min-h-[44px] rounded-lg transition-colors",
               showStylePanel
                 ? "text-[var(--amber)]"
                 : "text-[var(--text-muted)] hover:text-[var(--text)]"
@@ -81,7 +81,7 @@ export function AppHeader({
           <button
             type="button"
             onClick={handleThemeToggle}
-            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+            className="p-2 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-lg text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
             aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           >
             {theme === "dark" ? (
@@ -95,7 +95,7 @@ export function AppHeader({
           <button
             type="button"
             onClick={() => setAboutOpen(true)}
-            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+            className="p-2 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-lg text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
             aria-label="About"
           >
             <Info className="size-5" />
