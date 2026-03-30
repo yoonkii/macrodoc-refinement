@@ -93,7 +93,7 @@ export function InputPanel() {
         <Button
           variant="outline"
           onClick={handleClear}
-          className="text-[var(--error)] border-[var(--error)]/30 hover:bg-[var(--error-dim)]"
+          className="min-h-[40px] text-[var(--error)] border-[var(--error)]/30 hover:bg-[var(--error-dim)]"
         >
           <X className="size-4" data-icon="inline-start" />
           Clear
@@ -103,7 +103,7 @@ export function InputPanel() {
           <Button
             variant="outline"
             onClick={handlePaste}
-            className="text-[var(--amber)] border-[var(--amber)]/30 hover:bg-[var(--amber-dim)]"
+            className="min-h-[40px] text-[var(--amber)] border-[var(--amber)]/30 hover:bg-[var(--amber-dim)]"
           >
             <ClipboardPaste className="size-4" data-icon="inline-start" />
             Paste
@@ -114,7 +114,7 @@ export function InputPanel() {
             onClick={() => store.processNow()}
             disabled={isEmpty}
             className={cn(
-              "inline-flex items-center gap-2 px-6 py-2.5 rounded-full",
+              "inline-flex items-center gap-2 px-6 py-2.5 min-h-[44px] rounded-full",
               "font-sans text-sm font-medium transition-all",
               isEmpty
                 ? "bg-[var(--amber)]/10 text-[var(--text-muted)] cursor-not-allowed"
