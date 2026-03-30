@@ -58,10 +58,10 @@ export default function Home() {
       <main className="flex-1 flex flex-col relative">
         {/* Ambient glow */}
         <div
-          className="absolute top-0 left-0 right-0 h-[400px] pointer-events-none"
+          className="absolute top-0 left-0 right-0 h-[500px] pointer-events-none"
           style={{
             background:
-              "radial-gradient(ellipse at top center, rgba(232,168,56,0.07) 0%, transparent 70%)",
+              "radial-gradient(ellipse 80% 60% at top center, rgba(232,168,56,0.10) 0%, transparent 75%)",
           }}
         />
 
