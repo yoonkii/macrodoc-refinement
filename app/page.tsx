@@ -98,7 +98,7 @@ export default function Home() {
         </div>
 
         {/* Footer */}
-        <footer className="border-t border-[var(--border)] py-2.5 px-5 text-center">
+        <footer className="border-t border-[var(--border)] py-4 px-5 text-center">
           <Link
             href="/legal"
             className="text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
