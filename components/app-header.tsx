@@ -52,8 +52,8 @@ export function AppHeader({
           </button>
 
           {/* App title */}
-          <h1 className="font-display text-[22px] font-bold text-[var(--text)]">
-            MacroDocRefinement
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-[var(--text)]" style={{ letterSpacing: "-0.02em" }}>
+            MacroDoc<span className="text-[var(--amber)]">.</span>Refinement
           </h1>
 
           <div className="flex-1" />
