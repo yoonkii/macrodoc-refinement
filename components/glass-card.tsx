@@ -21,15 +21,16 @@ export function GlassCard({ children, className, innerClassName }: GlassCardProp
   return (
     <div
       className={cn(
-        "rounded-3xl border border-black/[0.06] dark:border-white/[0.06] p-[3px]",
+        "rounded-3xl border border-black/[0.06] dark:border-white/[0.08] p-[3px]",
         "bg-white/[0.03] dark:bg-white/[0.03]",
+        "dark:shadow-[0_0_30px_-10px_rgba(232,168,56,0.05)]",
         className
       )}
     >
       <div
         className={cn(
           "rounded-[20px] bg-[var(--surface)] h-full",
-          "shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)]",
+          "shadow-[inset_0_1px_1px_rgba(255,255,255,0.12),inset_0_-1px_2px_rgba(0,0,0,0.06)]",
           innerClassName
         )}
       >
