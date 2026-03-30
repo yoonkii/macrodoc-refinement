@@ -29,7 +29,7 @@ export function GlassCard({ children, className, innerClassName }: GlassCardProp
       <div
         className={cn(
           "rounded-[20px] bg-[var(--surface)] h-full",
-          "shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]",
+          "shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)]",
           innerClassName
         )}
       >

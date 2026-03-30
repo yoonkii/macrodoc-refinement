@@ -65,11 +65,11 @@ export default function Home() {
           }}
         />
 
-        <div className="flex flex-1 p-5 gap-4 relative z-10">
+        <div className="flex flex-1 p-6 md:p-8 gap-5 md:gap-6 relative z-10">
           {/* Editor area */}
-          <div className="flex-[3] flex flex-col gap-4 min-w-0">
+          <div className="flex-[3] flex flex-col gap-5 md:gap-6 min-w-0">
             {/* Split pane: side-by-side on desktop, stacked on mobile */}
-            <div className="flex-1 flex md:flex-row flex-col gap-4">
+            <div className="flex-1 flex md:flex-row flex-col gap-5">
               <GlassCard className="flex-1">
                 <InputPanel />
               </GlassCard>
