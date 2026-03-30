@@ -184,8 +184,8 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="px-4 pt-5 pb-3 text-center">
-        <h2 className="font-display text-lg font-bold text-[var(--amber)]">
+      <div className="px-4 pt-5 pb-1 text-center">
+        <h2 className="font-display text-lg font-bold text-[var(--amber)] mb-6">
           Style Profiles
         </h2>
       </div>
@@ -213,7 +213,7 @@ function ProfileSection({
 }: ProfileSectionProps) {
   return (
     <div className="mb-4">
-      <p className="px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
+      <p className="px-3 mt-6 mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--text-muted)]">
         {title}
       </p>
       {profiles.map((profile) => (
