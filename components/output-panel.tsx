@@ -79,11 +79,11 @@ export function OutputPanel() {
         ) : !hasText ? (
           /* Empty state */
           <div className="flex flex-col items-center justify-center h-full p-6">
-            <Type className="size-12 text-[var(--text-muted)] opacity-20 mb-4" />
-            <p className="font-sans text-[var(--text-muted)] text-base text-center">
+            <Type className="w-12 h-12 text-[var(--text-muted)] opacity-15 mb-5" />
+            <p className="font-sans text-[var(--text-muted)] text-base text-center animate-pulse">
               Your refined text will appear here
             </p>
-            <p className="font-sans text-[var(--text-muted)] text-sm text-center opacity-60 mt-2">
+            <p className="font-sans text-[var(--text-muted)] text-sm text-center opacity-50 mt-2">
               Enter some text in the input panel to begin
             </p>
           </div>
