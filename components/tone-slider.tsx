@@ -41,18 +41,18 @@ export function ToneSlider() {
   }
 
   return (
-    <div className="flex items-center gap-5 px-6 py-5">
+    <div className="flex items-center gap-5 px-6 py-6">
       {/* Slider area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Tier labels row */}
-        <div className="flex justify-between px-3 mb-1.5">
+        <div className="flex justify-between px-3 mb-3">
           {TONE_TIER_ENTRIES.map((tier) => {
             const isActive = snappedValue === tier.value;
             return (
               <span
                 key={tier.value}
                 className={cn(
-                  "font-mono text-[10px] text-center flex-1 truncate transition-colors duration-150",
+                  "font-mono text-xs tracking-wide text-center flex-1 truncate transition-colors duration-150",
                   isActive
                     ? "text-[var(--amber)] font-semibold"
                     : "text-[var(--text-muted)] font-normal"
