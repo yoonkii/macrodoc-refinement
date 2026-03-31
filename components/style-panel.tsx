@@ -181,14 +181,16 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       {/* Header */}
-      <div className="px-4 pt-4 pb-1">
+      <div className="px-4 pt-4 pb-1 shrink-0">
         <h2 className="text-sm font-semibold text-[var(--amber)] mb-3">
           Style Profiles
         </h2>
       </div>
-      {content}
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        {content}
+      </div>
     </div>
   );
 }

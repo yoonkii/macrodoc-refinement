@@ -48,29 +48,29 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-dvh">
+    <div className="flex flex-col h-dvh overflow-hidden">
       <AppHeader
         showStylePanel={showStylePanel}
         onToggleStylePanel={handleToggleStylePanel}
         onToggleMobileDrawer={handleToggleMobileDrawer}
       />
 
-      <main className="flex-1 flex flex-col relative">
-        <div className="flex flex-1 p-4 md:p-5 gap-3 md:gap-4">
+      <main className="flex-1 flex flex-col min-h-0">
+        <div className="flex flex-1 p-4 md:p-5 gap-3 md:gap-4 min-h-0">
           {/* Editor area */}
-          <div className="flex-[3] flex flex-col gap-3 md:gap-4 min-w-0">
+          <div className="flex-[3] flex flex-col gap-3 md:gap-4 min-h-0 min-w-0">
             {/* Split pane: side-by-side on desktop, stacked on mobile */}
-            <div className="flex-1 flex md:flex-row flex-col gap-3">
-              <GlassCard className="flex-1">
+            <div className="flex-1 flex md:flex-row flex-col gap-3 min-h-0">
+              <GlassCard className="flex-1 min-h-0 flex flex-col">
                 <InputPanel />
               </GlassCard>
-              <GlassCard className="flex-1">
+              <GlassCard className="flex-1 min-h-0 flex flex-col">
                 <OutputPanel />
               </GlassCard>
             </div>
 
             {/* Tone slider */}
-            <GlassCard>
+            <GlassCard className="shrink-0">
               <ToneSlider />
             </GlassCard>
 
@@ -80,8 +80,8 @@ export default function Home() {
 
           {/* Style panel sidebar (desktop only) */}
           {showStylePanel && (
-            <div className="hidden md:block w-[300px] shrink-0">
-              <GlassCard className="h-full">
+            <div className="hidden md:block w-[280px] shrink-0 min-h-0">
+              <GlassCard className="h-full flex flex-col">
                 <StylePanel />
               </GlassCard>
             </div>
@@ -89,7 +89,7 @@ export default function Home() {
         </div>
 
         {/* Footer */}
-        <footer className="border-t border-[var(--border)] py-3 px-4 text-center">
+        <footer className="shrink-0 border-t border-[var(--border)] py-2 px-4 text-center">
           <Link
             href="/legal"
             className="text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"

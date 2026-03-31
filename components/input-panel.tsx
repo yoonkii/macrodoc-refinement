@@ -50,7 +50,7 @@ export function InputPanel() {
   const isEmpty = charCount === 0;
 
   return (
-    <div className="flex flex-col h-full p-4">
+    <div className="flex flex-col h-full p-4 min-h-0 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between pb-3">
         <h2 className="text-sm font-medium text-[var(--text)]">
@@ -62,7 +62,7 @@ export function InputPanel() {
       {/* Textarea container with amber focus border */}
       <div
         className={cn(
-          "flex-1 rounded-md border border-[var(--border)] bg-[var(--bg)]",
+          "flex-1 min-h-0 rounded-md border border-[var(--border)] bg-[var(--bg)]",
           "transition-colors duration-150",
           "focus-within:border-[var(--amber)]"
         )}
@@ -73,7 +73,7 @@ export function InputPanel() {
           onChange={handleChange}
           placeholder="Type or paste your text here..."
           className={cn(
-            "w-full h-full min-h-[200px] resize-none p-3",
+            "w-full h-full resize-none p-3",
             "bg-transparent text-[var(--text)] placeholder:text-[var(--text-muted)]",
             "font-sans text-sm leading-relaxed",
             "outline-none border-none rounded-md"
@@ -82,14 +82,14 @@ export function InputPanel() {
       </div>
 
       {/* Legal disclaimer */}
-      <p className="pt-3 pb-3 text-[10px] text-[var(--text-muted)] leading-relaxed">
+      <p className="shrink-0 pt-2 pb-2 text-[10px] text-[var(--text-muted)] leading-relaxed">
         Text is processed by Google&apos;s Gemini AI. By using this service, you
         confirm that you are at least 18 years of age. Users under 18 are not
         permitted to use this service.
       </p>
 
       {/* Action buttons */}
-      <div className="flex items-center justify-between">
+      <div className="shrink-0 flex items-center justify-between">
         <Button
           variant="outline"
           size="sm"

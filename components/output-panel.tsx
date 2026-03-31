@@ -31,9 +31,9 @@ export function OutputPanel() {
   }
 
   return (
-    <div className="flex flex-col h-full p-4">
+    <div className="flex flex-col h-full p-4 min-h-0 overflow-hidden">
       {/* Header */}
-      <div className="pb-3">
+      <div className="pb-3 shrink-0">
         <h2 className="text-sm font-medium text-[var(--text)]">
           Refined Text
         </h2>
@@ -42,7 +42,7 @@ export function OutputPanel() {
       {/* Content area */}
       <div
         className={cn(
-          "flex-1 rounded-md border border-[var(--border)] overflow-hidden",
+          "flex-1 min-h-0 rounded-md border border-[var(--border)] overflow-auto",
           "bg-[var(--bg)]"
         )}
       >
