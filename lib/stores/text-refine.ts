@@ -192,6 +192,13 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
       const { toneValue } = get();
       if (toneValue !== value) {
         set({ toneValue: value });
+        const { inputText } = get();
+        if (inputText.length > 0) {
+          // Cancel any pending debounce and process immediately
+          if (debounceTimer) clearTimeout(debounceTimer);
+          debounceTimer = null;
+          processText(inputText);
+        }
       }
     },
   };

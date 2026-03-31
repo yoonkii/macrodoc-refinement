@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Download, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStyleProfilesStore } from "@/lib/stores/style-profiles";
 import { useToneStore } from "@/lib/stores/tone";
@@ -33,6 +33,7 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
   const [deletingProfile, setDeletingProfile] = useState<StyleProfile | null>(
     null
   );
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Identify the Proofread Only profile and personality profiles
   const proofreadProfile = profiles.find((p) => p.name === PROOFREAD_ONLY_NAME);
@@ -100,6 +101,62 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
       store.toggleProfileActive(proofreadProfile.id);
     }
   }, [isProofreadActive, proofreadProfile, personalityProfiles, store]);
+
+  const handleExport = useCallback(() => {
+    const data = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      profileCount: profiles.length,
+      profiles,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "mdr-style-profiles.json";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }, [profiles]);
+
+  const handleImport = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = JSON.parse(event.target?.result as string);
+          const importedProfiles: unknown[] = data.profiles || data;
+          if (!Array.isArray(importedProfiles)) return;
+
+          const existingNames = new Set(profiles.map((p) => p.name));
+
+          for (const raw of importedProfiles) {
+            const profile = raw as Record<string, unknown>;
+            if (
+              typeof profile.name === "string" &&
+              typeof profile.instructions === "string" &&
+              !existingNames.has(profile.name)
+            ) {
+              store.addProfile({
+                ...(profile as unknown as StyleProfile),
+                id: crypto.randomUUID(),
+              });
+              existingNames.add(profile.name);
+            }
+          }
+        } catch {
+          // Invalid JSON — silently ignore
+        }
+      };
+      reader.readAsText(file);
+      // Reset so same file can be re-imported
+      e.target.value = "";
+    },
+    [profiles, store]
+  );
 
   function handleEdit(profile: StyleProfile) {
     // Navigate to the playground with the profile ID for full-page editing
@@ -228,9 +285,38 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
     <div className="flex flex-col h-full min-h-0">
       {/* Header */}
       <div className="px-4 pt-4 pb-1 shrink-0">
-        <h2 className="text-sm font-semibold text-[var(--amber)] mb-3">
-          Style Profiles
-        </h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-[var(--amber)]">
+            Style Profiles
+          </h2>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={handleExport}
+              className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--amber)] hover:bg-white/[0.05] transition-colors"
+              aria-label="Export profiles"
+              title="Export profiles"
+            >
+              <Download className="size-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--amber)] hover:bg-white/[0.05] transition-colors"
+              aria-label="Import profiles"
+              title="Import profiles"
+            >
+              <Upload className="size-3.5" />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              className="hidden"
+            />
+          </div>
+        </div>
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto">
         {content}
