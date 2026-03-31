@@ -269,10 +269,10 @@ function RefinedTabContent({
           <div className="flex flex-col items-center justify-center h-full p-4">
             <Type className="size-8 text-[var(--text-muted)] opacity-15 mb-3" />
             <p className="font-sans text-xs text-[var(--text-muted)] text-center">
-              Your refined text will appear here
+              Start typing to see the magic
             </p>
             <p className="font-sans text-[10px] text-[var(--text-muted)] text-center opacity-50 mt-1">
-              Enter some text in the input panel to begin
+              Your text will be refined in real time
             </p>
           </div>
         ) : (
@@ -374,7 +374,7 @@ function PlatformTabContent({
           <div className="flex flex-col items-center justify-center h-full p-4 gap-3">
             <Type className="size-8 text-[var(--text-muted)] opacity-15" />
             <p className="font-sans text-xs text-[var(--text-muted)] text-center">
-              Switch to this tab with input text to auto-generate
+              Type something and this tab will generate automatically
             </p>
           </div>
         )}
