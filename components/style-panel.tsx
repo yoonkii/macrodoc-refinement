@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStyleProfilesStore } from "@/lib/stores/style-profiles";
-import type { StyleProfile, ProfileType } from "@/lib/types";
+import { useToneStore } from "@/lib/stores/tone";
+import type { StyleProfile } from "@/lib/types";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +16,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { ToneSlider } from "@/components/tone-slider";
 
 const PROOFREAD_ONLY_NAME = "Proofread Only";
 
@@ -23,7 +24,9 @@ interface StylePanelProps {
 }
 
 export function StylePanel({ isInDrawer = false }: StylePanelProps) {
+  const router = useRouter();
   const store = useStyleProfilesStore();
+  const toneStore = useToneStore();
   const profiles = store.profiles;
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -46,10 +49,17 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
       p.name !== PROOFREAD_ONLY_NAME
   );
 
+  // Sort personality profiles by toneBaseline ascending (most formal first)
+  const sortedPersonalityProfiles = useMemo(
+    () => [...personalityProfiles].sort((a, b) => a.toneBaseline - b.toneBaseline),
+    [personalityProfiles]
+  );
+
   const anyPersonalityActive = personalityProfiles.some((p) => p.isActive);
   const isProofreadActive = proofreadProfile?.isActive ?? false;
 
-  // Auto-toggle logic: mutual exclusivity between Proofread Only and personality modes
+  // Auto-toggle logic: mutual exclusivity between Proofread Only and personality modes.
+  // Also sets tone based on active personality or resets to 0.0 for proofread-only.
   useEffect(() => {
     if (!proofreadProfile) return;
 
@@ -64,6 +74,17 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
       store.toggleProfileActive(proofreadProfile.id);
     }
   }, [anyPersonalityActive, isProofreadActive, proofreadProfile, store]);
+
+  // Sync tone value to the active personality's toneBaseline
+  useEffect(() => {
+    const activePersonality = personalityProfiles.find((p) => p.isActive);
+    if (activePersonality) {
+      toneStore.setTone(activePersonality.toneBaseline);
+    } else {
+      // No personality active (proofread-only mode) => balanced tone
+      toneStore.setTone(0.0);
+    }
+  }, [personalityProfiles, toneStore]);
 
   // When user manually toggles Proofread Only ON, turn off all personality modes
   const handleProofreadToggle = useCallback(() => {
@@ -83,11 +104,6 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
       store.toggleProfileActive(proofreadProfile.id);
     }
   }, [isProofreadActive, proofreadProfile, personalityProfiles, store]);
-
-  function handleAdd() {
-    setEditingProfile(null);
-    setEditDialogOpen(true);
-  }
 
   function handleEdit(profile: StyleProfile) {
     setEditingProfile(profile);
@@ -119,18 +135,6 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
         instructions,
         fewShots,
       });
-    } else {
-      const newProfile: StyleProfile = {
-        id: "",
-        name,
-        instructions,
-        fewShots,
-        isActive: false,
-        type: "custom" as ProfileType,
-        toneBaseline: 0,
-        charLimit: null,
-      };
-      store.addProfile(newProfile);
     }
     setEditDialogOpen(false);
     setEditingProfile(null);
@@ -171,26 +175,16 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
           </div>
         )}
 
-        {/* Personality Modes */}
-        {personalityProfiles.length > 0 && (
+        {/* Personality Modes — sorted by formality (most formal first) */}
+        {sortedPersonalityProfiles.length > 0 && (
           <ProfileSection
             title="Personality Modes"
-            profiles={personalityProfiles}
+            profiles={sortedPersonalityProfiles}
             onToggle={(id) => store.toggleProfileActive(id)}
             onEdit={handleEdit}
             onDelete={handleDeleteRequest}
           />
         )}
-
-        {/* Tone slider section */}
-        <div className="mb-2">
-          <p className="px-3 mt-5 mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-dim,var(--text-muted))]">
-            Tone
-          </p>
-          <div className="px-1">
-            <ToneSlider />
-          </div>
-        </div>
 
         {/* Custom profiles */}
         {customProfiles.length > 0 && (
@@ -204,11 +198,11 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
         )}
       </div>
 
-      {/* Add new style button */}
+      {/* Add new style button — navigates to /playground */}
       <div className="p-3">
         <button
           type="button"
-          onClick={handleAdd}
+          onClick={() => router.push("/playground")}
           className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-1.5 h-8 rounded-full border border-[var(--amber)] text-[var(--amber)] font-sans text-xs font-medium hover:bg-[var(--amber)] hover:text-[#1A1816] transition-colors"
         >
           <Plus className="size-3.5" />
@@ -216,16 +210,18 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
         </button>
       </div>
 
-      {/* Edit/Add dialog */}
-      <ProfileFormDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        title={editingProfile ? "Edit Style" : "Add New Style"}
-        initialName={editingProfile?.name ?? ""}
-        initialInstructions={editingProfile?.instructions ?? ""}
-        initialFewShots={editingProfile?.fewShots ?? []}
-        onSave={handleSave}
-      />
+      {/* Edit dialog (for editing existing profiles in-place) */}
+      {editingProfile && (
+        <ProfileFormDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          title="Edit Style"
+          initialName={editingProfile.name}
+          initialInstructions={editingProfile.instructions}
+          initialFewShots={editingProfile.fewShots}
+          onSave={handleSave}
+        />
+      )}
 
       {/* Delete confirmation dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -347,7 +343,7 @@ function ProfileTile({ profile, onToggle, onEdit, onDelete }: ProfileTileProps) 
       </div>
 
       {/* Instructions preview */}
-      <p className="px-3 pb-2.5 font-sans text-xs text-[var(--text-muted)] leading-snug line-clamp-2">
+      <p className="px-3 pb-1 font-sans text-xs text-[var(--text-muted)] leading-snug line-clamp-2">
         {profile.instructions}
       </p>
 
@@ -374,7 +370,7 @@ function ProfileTile({ profile, onToggle, onEdit, onDelete }: ProfileTileProps) 
   );
 }
 
-// ---------- Form Dialog ----------
+// ---------- Form Dialog (Edit only) ----------
 
 interface ProfileFormDialogProps {
   open: boolean;

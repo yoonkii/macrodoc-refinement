@@ -177,7 +177,7 @@ export const DEFAULT_PROFILES: StyleProfile[] = [
     id: defaultId('custom'),
     name: 'Gen Z Style',
     type: 'personality',
-    toneBaseline: 0.0,
+    toneBaseline: 1.0,
     charLimit: null,
     instructions:
       "Convert the text into authentic Gen Z speak that feels like a TikTok or BeReal caption. Use lowercase exclusively (EXCEPT for emphasis), abbreviate aggressively (iykyk), and include random emotional outbursts. Sprinkle in current slang like \"no cap\", \"fr\", \"slay\", \"based\", and \"rizz\". Reference being \"chronically online\" or having \"main character energy\". Keep sentences short and chaotic, use keysmashes (asdfghjkl) for emphasis, insert \"crying\" or \"screaming\" randomly, and end with \"anyways...\" or \"that's it that's the tweet\". Don't be cringe by trying too hard.",
