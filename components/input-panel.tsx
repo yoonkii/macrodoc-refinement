@@ -93,7 +93,7 @@ export function InputPanel() {
             onClick={() => store.processNow()}
             disabled={isEmpty}
             className={cn(
-              "inline-flex items-center gap-1.5 px-4 py-1.5 h-8 rounded-full",
+              "inline-flex items-center gap-1.5 px-4 py-2 h-9 rounded-full",
               "font-sans text-xs font-medium transition-all",
               isEmpty
                 ? "bg-[var(--amber)]/10 text-[var(--text-muted)] cursor-not-allowed"
@@ -109,7 +109,7 @@ export function InputPanel() {
               variant="outline"
               size="sm"
               onClick={handlePaste}
-              className="h-8 text-xs text-[var(--amber)] border-[var(--amber)]/30 hover:bg-[var(--amber-dim)]"
+              className="h-9 text-xs text-[var(--amber)] border-[var(--amber)]/30 hover:bg-[var(--amber-dim)]"
             >
               <ClipboardPaste className="size-3.5" data-icon="inline-start" />
               Paste
@@ -119,7 +119,7 @@ export function InputPanel() {
               variant="outline"
               size="sm"
               onClick={handleClear}
-              className="h-8 text-xs text-[var(--error)] border-[var(--error)]/30 hover:bg-[var(--error-dim)]"
+              className="h-9 text-xs text-[var(--error)] border-[var(--error)]/30 hover:bg-[var(--error-dim)]"
             >
               <X className="size-3.5" data-icon="inline-start" />
               Clear
