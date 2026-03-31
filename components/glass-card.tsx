@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
 interface GlassCardProps {
@@ -20,8 +21,29 @@ interface GlassCardProps {
  * Layout classes (flex-1, min-h-0, h-full, shrink-0, etc.) go on the outer div
  * via `className`. Content arrangement classes go on the inner div via
  * `innerClassName` — it always gets `h-full` by default.
+ *
+ * MDR mode: flat, clinical card — no glass effect, solid surface background,
+ * solid border, no backdrop-blur.
  */
 export function GlassCard({ children, className, innerClassName }: GlassCardProps) {
+  const { theme } = useTheme();
+  const isMdr = theme === "mdr";
+
+  if (isMdr) {
+    return (
+      <div
+        className={cn(
+          "rounded-lg border border-[var(--border)] bg-[var(--surface)]",
+          className
+        )}
+      >
+        <div className={cn("h-full rounded-lg p-5", innerClassName)}>
+          {children}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(

@@ -12,7 +12,8 @@ import { motion } from "framer-motion";
 export function StreamingCursor() {
   return (
     <motion.span
-      className="inline-block w-[2px] h-[16px] bg-[var(--amber)] align-text-bottom ml-0.5 dark:shadow-[0_0_6px_rgba(232,168,56,0.4)]"
+      className="inline-block w-[2px] h-[16px] bg-[var(--amber)] align-text-bottom ml-0.5"
+      style={{ boxShadow: "0 0 6px var(--amber-dim)" }}
       animate={{ opacity: [1, 0.2] }}
       transition={{
         duration: 0.8,

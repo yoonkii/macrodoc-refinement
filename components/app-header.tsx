@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Info, PanelRightOpen, PanelRightClose, Menu } from "lucide-react";
+import { Sun, Moon, Monitor, Info, PanelRightOpen, PanelRightClose, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,9 +26,37 @@ export function AppHeader({
 }: AppHeaderProps) {
   const { theme, setTheme } = useTheme();
   const [aboutOpen, setAboutOpen] = useState(false);
+  const clickCountRef = useRef(0);
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function handleThemeToggle() {
-    setTheme(theme === "dark" ? "light" : "dark");
+    if (theme === "mdr") {
+      setTheme("dark");
+    } else {
+      setTheme(theme === "dark" ? "light" : "dark");
+    }
+  }
+
+  function handleTitleClick() {
+    clickCountRef.current += 1;
+
+    if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+
+    if (clickCountRef.current >= 3) {
+      clickCountRef.current = 0;
+      if (theme === "mdr") {
+        setTheme("dark");
+      } else {
+        document.documentElement.classList.add("crt-flash");
+        setTimeout(() => document.documentElement.classList.remove("crt-flash"), 400);
+        setTheme("mdr");
+      }
+      return;
+    }
+
+    clickTimerRef.current = setTimeout(() => {
+      clickCountRef.current = 0;
+    }, 500);
   }
 
   return (
@@ -51,9 +79,16 @@ export function AppHeader({
             <Menu className="size-4" />
           </button>
 
-          {/* App title */}
-          <h1 className="text-base font-semibold tracking-tight text-[var(--text)]">
-            Macro Doc Refinement.
+          {/* App title — triple-click to toggle MDR mode */}
+          <h1
+            onClick={handleTitleClick}
+            className={cn(
+              "text-base font-semibold tracking-tight text-[var(--text)] select-none cursor-default",
+              theme === "mdr" && "font-mono uppercase tracking-widest"
+            )}
+            style={theme === "mdr" ? { textShadow: "0 0 8px rgba(124, 184, 124, 0.5)" } : undefined}
+          >
+            {theme === "mdr" ? "MACRO DATA REFINEMENT" : "Macro Doc Refinement."}
           </h1>
 
           <div className="flex-1" />
@@ -82,9 +117,17 @@ export function AppHeader({
             type="button"
             onClick={handleThemeToggle}
             className="p-1.5 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
-            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label={
+              theme === "mdr"
+                ? "Exit MDR mode"
+                : theme === "dark"
+                  ? "Switch to light mode"
+                  : "Switch to dark mode"
+            }
           >
-            {theme === "dark" ? (
+            {theme === "mdr" ? (
+              <Monitor className="size-4" />
+            ) : theme === "dark" ? (
               <Sun className="size-4" />
             ) : (
               <Moon className="size-4" />
