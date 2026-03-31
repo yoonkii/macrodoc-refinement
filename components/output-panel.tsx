@@ -350,26 +350,10 @@ function PlatformTabContent({
 
   return (
     <>
-      {/* Character count badge when content exists */}
-      {hasContent && (
-        <div className="flex items-center justify-between pb-2 shrink-0">
-          <span
-            className={cn(
-              "font-mono text-[10px] font-medium px-2 py-0.5 rounded-md",
-              isOverLimit
-                ? "bg-[var(--error-dim)] text-[var(--error)]"
-                : "bg-[var(--elevated)] text-[var(--text-muted)]"
-            )}
-          >
-            {charCount} / {meta.charLimit}
-          </span>
-        </div>
-      )}
-
       {/* Content area */}
       <div
         className={cn(
-          "flex-1 min-h-0 rounded-md border border-[var(--border)] overflow-auto",
+          "flex-1 min-h-0 rounded-md border border-[var(--border)] overflow-auto relative",
           "bg-[var(--bg)]"
         )}
       >
@@ -381,7 +365,7 @@ function PlatformTabContent({
             </p>
           </div>
         ) : hasContent ? (
-          <div className="h-full overflow-y-auto p-3">
+          <div className="h-full overflow-y-auto p-3 pb-7">
             <p className="font-sans text-sm text-[var(--text)] leading-relaxed whitespace-pre-wrap select-text">
               {output}
             </p>
@@ -393,6 +377,17 @@ function PlatformTabContent({
               Switch to this tab with input text to auto-generate
             </p>
           </div>
+        )}
+        {/* Char counter inside content box, bottom-right */}
+        {hasContent && meta.charLimit > 0 && (
+          <span
+            className={cn(
+              "absolute bottom-2 right-3 font-mono text-[10px] pointer-events-none opacity-50",
+              isOverLimit ? "text-[var(--error)] opacity-80" : "text-[var(--text-muted)]"
+            )}
+          >
+            {charCount} / {meta.charLimit}
+          </span>
         )}
       </div>
 

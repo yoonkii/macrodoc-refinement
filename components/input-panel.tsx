@@ -52,19 +52,18 @@ export function InputPanel() {
   return (
     <div className="flex flex-col h-full min-h-0 overflow-hidden">
       {/* Header — matches output panel tab bar height */}
-      <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-[var(--border)]">
+      <div className="shrink-0 flex items-center px-5 py-3 border-b border-[var(--border)]">
         <h2 className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-dim,var(--text-muted))]">
           Input Text
         </h2>
-        <CharCounter current={charCount} max={MAX_CHARACTERS} />
       </div>
 
       {/* Content area */}
       <div className="flex-1 min-h-0 flex flex-col p-5 pt-3">
-        {/* Textarea container with amber focus border */}
+        {/* Textarea container with char counter inside */}
         <div
           className={cn(
-            "flex-1 min-h-0 rounded-md border border-[var(--border)] bg-[var(--bg)]",
+            "flex-1 min-h-0 rounded-md border border-[var(--border)] bg-[var(--bg)] relative",
             "transition-all duration-150",
             "focus-within:border-[var(--amber)] focus-within:shadow-[0_0_0_2px_rgba(232,168,56,0.15)]"
           )}
@@ -75,12 +74,16 @@ export function InputPanel() {
             onChange={handleChange}
             placeholder="Type or paste your text here..."
             className={cn(
-              "w-full h-full resize-none p-3",
+              "w-full h-full resize-none p-3 pb-7",
               "bg-transparent text-[var(--text)] placeholder:text-[var(--text-muted)]",
               "font-sans text-sm leading-relaxed",
               "outline-none border-none rounded-md"
             )}
           />
+          {/* Char counter inside textarea, bottom-right */}
+          <span className="absolute bottom-2 right-3 font-mono text-[10px] text-[var(--text-muted)] opacity-50 pointer-events-none">
+            {charCount} / {MAX_CHARACTERS}
+          </span>
         </div>
 
         {/* Action buttons */}
