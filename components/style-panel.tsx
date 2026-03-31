@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { ToneSlider } from "@/components/tone-slider";
 
 interface StylePanelProps {
   isInDrawer?: boolean;
@@ -32,7 +33,7 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
     null
   );
 
-  const platformProfiles = profiles.filter((p) => p.type === "platform");
+  // Filter out platform profiles — they are now tabs in the output panel
   const personalityProfiles = profiles.filter((p) => p.type === "personality");
   const customProfiles = profiles.filter(
     (p) => p.type === "custom" || p.type === "learned"
@@ -93,15 +94,7 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
   const content = (
     <>
       <div className="flex-1 overflow-y-auto px-2 py-3">
-        {platformProfiles.length > 0 && (
-          <ProfileSection
-            title="Platform Presets"
-            profiles={platformProfiles}
-            onToggle={(id) => store.toggleProfileActive(id)}
-            onEdit={handleEdit}
-            onDelete={handleDeleteRequest}
-          />
-        )}
+        {/* Personality Modes */}
         {personalityProfiles.length > 0 && (
           <ProfileSection
             title="Personality Modes"
@@ -111,6 +104,18 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
             onDelete={handleDeleteRequest}
           />
         )}
+
+        {/* Tone slider section */}
+        <div className="mb-2">
+          <p className="px-3 mt-5 mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-dim,var(--text-muted))]">
+            Tone
+          </p>
+          <div className="px-1">
+            <ToneSlider />
+          </div>
+        </div>
+
+        {/* Custom profiles */}
         {customProfiles.length > 0 && (
           <ProfileSection
             title="Custom"

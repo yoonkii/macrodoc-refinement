@@ -11,8 +11,6 @@ import {
 import { AppHeader } from "@/components/app-header";
 import { InputPanel } from "@/components/input-panel";
 import { OutputPanel } from "@/components/output-panel";
-import { ToneSlider } from "@/components/tone-slider";
-import { MultiPostPack } from "@/components/multi-post-pack";
 import { StylePanel } from "@/components/style-panel";
 import { GlassCard } from "@/components/glass-card";
 import Link from "next/link";
@@ -57,25 +55,14 @@ export default function Home() {
 
       <main className="flex-1 flex flex-col min-h-0">
         <div className="flex flex-1 p-4 md:p-5 gap-3 md:gap-4 min-h-0">
-          {/* Editor area */}
-          <div className="flex-[3] flex flex-col gap-3 md:gap-4 min-h-0 min-w-0">
-            {/* Split pane: side-by-side on desktop, stacked on mobile */}
-            <div className="flex-1 flex md:flex-row flex-col gap-3 min-h-0">
-              <GlassCard className="flex-1 min-h-0" innerClassName="flex flex-col">
-                <InputPanel />
-              </GlassCard>
-              <GlassCard className="flex-1 min-h-0" innerClassName="flex flex-col">
-                <OutputPanel />
-              </GlassCard>
-            </div>
-
-            {/* Tone slider */}
-            <GlassCard className="shrink-0" innerClassName="px-0 py-0">
-              <ToneSlider />
+          {/* Editor area — just the split pane, nothing else */}
+          <div className="flex-[3] flex md:flex-row flex-col gap-3 md:gap-4 min-h-0 min-w-0">
+            <GlassCard className="flex-1 min-h-0" innerClassName="flex flex-col">
+              <InputPanel />
             </GlassCard>
-
-            {/* Multi-post pack (conditional) */}
-            <MultiPostPack />
+            <GlassCard className="flex-1 min-h-0" innerClassName="flex flex-col">
+              <OutputPanel />
+            </GlassCard>
           </div>
 
           {/* Style panel sidebar (desktop only) */}

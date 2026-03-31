@@ -53,7 +53,7 @@ export function AppHeader({
 
           {/* App title */}
           <h1 className="text-base font-semibold tracking-tight text-[var(--text)]">
-            MacroDoc<span className="inline-block w-[7px] h-[7px] rounded-full bg-[var(--amber)] align-middle mx-[1px] mb-[1px] shadow-[0_0_8px_rgba(232,168,56,0.25),0_0_20px_rgba(232,168,56,0.15)]" />Refinement
+            Macro Doc Refinement.
           </h1>
 
           <div className="flex-1" />
