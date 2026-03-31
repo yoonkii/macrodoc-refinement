@@ -26,14 +26,17 @@ export function GlassCard({ children, className, innerClassName }: GlassCardProp
     <div
       className={cn(
         "rounded-2xl p-[3px] border transition-colors duration-300",
-        "bg-gradient-to-br from-white/[0.06] via-white/[0.02] to-white/[0.04]",
-        "border-white/[0.05] hover:border-white/[0.09]",
+        "dark:bg-gradient-to-br dark:from-white/[0.06] dark:via-white/[0.02] dark:to-white/[0.04]",
+        "dark:border-white/[0.05] dark:hover:border-white/[0.09]",
+        "bg-black/[0.02] border-black/[0.08] hover:border-black/[0.12]",
         className
       )}
     >
       <div
         className={cn(
-          "h-full rounded-[13px] bg-[rgba(8,8,10,0.85)] backdrop-blur-[40px]",
+          "h-full rounded-[13px]",
+          "dark:bg-[rgba(8,8,10,0.85)] dark:backdrop-blur-[40px]",
+          "bg-white",
           innerClassName
         )}
       >
