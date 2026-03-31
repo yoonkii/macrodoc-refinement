@@ -278,31 +278,37 @@ export const MODEL_NAME = 'gemini-3.1-flash-lite-preview';
 // ── BYOM Provider Metadata ─────────────────────────────────────────────────
 
 export const PROVIDERS: Record<string, ProviderMeta> = {
-  default: { label: 'Default (Free)', description: 'Gemini Flash Lite via shared proxy' },
-  openai: { label: 'OpenAI', description: 'GPT-4o, GPT-4.1 series' },
-  anthropic: { label: 'Anthropic', description: 'Claude Sonnet, Haiku' },
-  google: { label: 'Google', description: 'Gemini 2.5 Flash/Pro (direct)' },
-  grok: { label: 'Grok (xAI)', description: 'Grok 3 series' },
+  default: { label: 'Default (Free)', description: 'Gemini 3.1 Flash Lite via shared proxy' },
+  openai: { label: 'OpenAI', description: 'GPT-5.4 series, o3-mini reasoning' },
+  anthropic: { label: 'Anthropic', description: 'Claude 4.5 Haiku, 4.6 Sonnet/Opus' },
+  google: { label: 'Google', description: 'Gemini 3.1 Flash/Pro (direct API key)' },
+  grok: { label: 'xAI', description: 'Grok 4, 4.1, 4.20 series' },
 } as const;
 
 export const PROVIDER_MODELS: Record<string, Array<{ id: string; label: string }>> = {
-  default: [{ id: 'gemini-3.1-flash-lite-preview', label: 'Gemini Flash Lite' }],
+  default: [
+    { id: 'gemini-3.1-flash-lite-preview', label: 'Gemini 3.1 Flash Lite (Free)' },
+  ],
   openai: [
-    { id: 'gpt-4o-mini', label: 'GPT-4o Mini' },
-    { id: 'gpt-4o', label: 'GPT-4o' },
-    { id: 'gpt-4.1-mini', label: 'GPT-4.1 Mini' },
-    { id: 'gpt-4.1', label: 'GPT-4.1' },
+    { id: 'gpt-5.4-nano', label: 'GPT-5.4 Nano (fastest)' },
+    { id: 'gpt-5.4-mini', label: 'GPT-5.4 Mini' },
+    { id: 'gpt-5.4', label: 'GPT-5.4' },
+    { id: 'gpt-5.3-codex', label: 'GPT-5.3 Codex (coding)' },
+    { id: 'o3-mini', label: 'o3-mini (reasoning)' },
   ],
   anthropic: [
-    { id: 'claude-sonnet-4-5', label: 'Claude Sonnet 4.5' },
-    { id: 'claude-haiku-4-5', label: 'Claude Haiku 4.5' },
+    { id: 'claude-haiku-4-5', label: 'Claude 4.5 Haiku (fastest)' },
+    { id: 'claude-sonnet-4-6', label: 'Claude 4.6 Sonnet' },
+    { id: 'claude-opus-4-6', label: 'Claude 4.6 Opus' },
   ],
   google: [
-    { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
-    { id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
+    { id: 'gemini-3.1-flash-lite-preview', label: 'Gemini 3.1 Flash Lite' },
+    { id: 'gemini-3.1-flash-preview', label: 'Gemini 3.1 Flash' },
+    { id: 'gemini-3.1-pro-preview', label: 'Gemini 3.1 Pro' },
   ],
   grok: [
-    { id: 'grok-3-mini', label: 'Grok 3 Mini' },
-    { id: 'grok-3', label: 'Grok 3' },
+    { id: 'grok-4.1-fast', label: 'Grok 4.1 Fast' },
+    { id: 'grok-4', label: 'Grok 4' },
+    { id: 'grok-4.20-0309-reasoning', label: 'Grok 4.20 (reasoning)' },
   ],
 };
