@@ -6,8 +6,10 @@
 import { create } from 'zustand';
 
 import { streamRefine } from '../api';
+import { streamWithProvider } from '../byom-api';
 import { MAX_CHARACTERS } from '../constants';
 import { buildRefinementPrompt } from '../prompt-builder';
+import { useModelConfigStore } from './model-config';
 import type { StyleProfile } from '../types';
 
 export interface TextRefineState {
@@ -91,7 +93,15 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
     });
 
     try {
-      for await (const chunk of streamRefine(prompt, signal)) {
+      const modelConfig = useModelConfigStore.getState().config;
+
+      // Route to BYOM provider or default Cloud Run proxy
+      const stream =
+        modelConfig.provider === 'default'
+          ? streamRefine(prompt, signal)
+          : streamWithProvider(prompt, modelConfig, signal);
+
+      for await (const chunk of stream) {
         // Check if we were aborted between chunks
         if (signal.aborted) return;
         set((state) => ({ refinedText: state.refinedText + chunk }));

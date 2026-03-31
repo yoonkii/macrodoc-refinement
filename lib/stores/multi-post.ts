@@ -6,9 +6,12 @@
 import { create } from 'zustand';
 
 import { generateMultiPost } from '../api';
+import type { MultiPostResult } from '../api';
+import { generateWithProvider } from '../byom-api';
 import { PLATFORM_KEYS } from '../types';
 import type { StyleProfile } from '../types';
 import { buildMultiPostPrompt } from '../prompt-builder';
+import { useModelConfigStore } from './model-config';
 
 export interface MultiPostState {
   platformOutputs: Record<string, string>;
@@ -33,6 +36,37 @@ export interface MultiPostActions {
 }
 
 export type MultiPostStore = MultiPostState & MultiPostActions;
+
+/**
+ * Generate multi-post content via BYOM provider. The prompt asks for JSON
+ * output with keys: linkedin, x, instagram, substack. We parse the raw
+ * text response to extract those keys.
+ */
+async function generateMultiPostViaBYOM(prompt: string): Promise<MultiPostResult> {
+  const modelConfig = useModelConfigStore.getState().config;
+  const rawText = await generateWithProvider(prompt, modelConfig);
+
+  // Extract JSON from the response — the model may wrap it in markdown code fences
+  let jsonStr = rawText.trim();
+  const fenceMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenceMatch) {
+    jsonStr = fenceMatch[1].trim();
+  }
+
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(jsonStr) as Record<string, unknown>;
+  } catch {
+    throw new Error('Failed to parse multi-post JSON response from AI provider');
+  }
+
+  return {
+    linkedin: typeof parsed['linkedin'] === 'string' ? parsed['linkedin'] : '',
+    x: typeof parsed['x'] === 'string' ? parsed['x'] : '',
+    instagram: typeof parsed['instagram'] === 'string' ? parsed['instagram'] : '',
+    substack: typeof parsed['substack'] === 'string' ? parsed['substack'] : '',
+  };
+}
 
 export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
   // ── State ──
@@ -64,7 +98,12 @@ export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
         toneValue,
       });
 
-      const results = await generateMultiPost(prompt);
+      const modelConfig = useModelConfigStore.getState().config;
+      const results =
+        modelConfig.provider === 'default'
+          ? await generateMultiPost(prompt)
+          : await generateMultiPostViaBYOM(prompt);
+
       const outputs: Record<string, string> = { ...results };
       const errors: Record<string, boolean> = {};
 
@@ -115,7 +154,11 @@ export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
         toneValue,
       });
 
-      const results = await generateMultiPost(prompt);
+      const modelConfig = useModelConfigStore.getState().config;
+      const results =
+        modelConfig.provider === 'default'
+          ? await generateMultiPost(prompt)
+          : await generateMultiPostViaBYOM(prompt);
 
       set((state) => {
         const updatedOutputs = { ...state.platformOutputs };

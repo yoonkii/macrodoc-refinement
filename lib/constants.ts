@@ -3,7 +3,7 @@
 // Ported VERBATIM from Flutter: style_profile_provider.dart, prompt_builder.dart
 // ---------------------------------------------------------------------------
 
-import type { PlatformKey, PlatformMeta, StyleProfile, ToneTier } from './types';
+import type { PlatformKey, PlatformMeta, ProviderMeta, StyleProfile, ToneTier } from './types';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -274,3 +274,35 @@ export const PROXY_URL: string =
 export const MAX_CHARACTERS = 10_000;
 
 export const MODEL_NAME = 'gemini-3.1-flash-lite-preview';
+
+// ── BYOM Provider Metadata ─────────────────────────────────────────────────
+
+export const PROVIDERS: Record<string, ProviderMeta> = {
+  default: { label: 'Default (Free)', description: 'Gemini Flash Lite via shared proxy' },
+  openai: { label: 'OpenAI', description: 'GPT-4o, GPT-4.1 series' },
+  anthropic: { label: 'Anthropic', description: 'Claude Sonnet, Haiku' },
+  google: { label: 'Google', description: 'Gemini 2.5 Flash/Pro (direct)' },
+  grok: { label: 'Grok (xAI)', description: 'Grok 3 series' },
+} as const;
+
+export const PROVIDER_MODELS: Record<string, Array<{ id: string; label: string }>> = {
+  default: [{ id: 'gemini-3.1-flash-lite-preview', label: 'Gemini Flash Lite' }],
+  openai: [
+    { id: 'gpt-4o-mini', label: 'GPT-4o Mini' },
+    { id: 'gpt-4o', label: 'GPT-4o' },
+    { id: 'gpt-4.1-mini', label: 'GPT-4.1 Mini' },
+    { id: 'gpt-4.1', label: 'GPT-4.1' },
+  ],
+  anthropic: [
+    { id: 'claude-sonnet-4-5', label: 'Claude Sonnet 4.5' },
+    { id: 'claude-haiku-4-5', label: 'Claude Haiku 4.5' },
+  ],
+  google: [
+    { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
+    { id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
+  ],
+  grok: [
+    { id: 'grok-3-mini', label: 'Grok 3 Mini' },
+    { id: 'grok-3', label: 'Grok 3' },
+  ],
+};

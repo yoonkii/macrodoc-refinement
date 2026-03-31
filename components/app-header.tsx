@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Monitor, Info, PanelRightOpen, PanelRightClose, Menu, FlaskConical } from "lucide-react";
+import { Sun, Moon, Monitor, Info, PanelRightOpen, PanelRightClose, Menu, FlaskConical, Settings } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -134,6 +134,24 @@ export function AppHeader({
                 }
               />
               <TooltipContent side="bottom">Style Playground</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Settings link */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Link
+                    href="/settings"
+                    className="hidden md:inline-flex items-center justify-center p-1.5 min-w-[44px] min-h-[44px] rounded-md text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+                    aria-label="Settings"
+                  >
+                    <Settings className="size-4" />
+                  </Link>
+                }
+              />
+              <TooltipContent side="bottom">Settings</TooltipContent>
             </Tooltip>
           </TooltipProvider>
 

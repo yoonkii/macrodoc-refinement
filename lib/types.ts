@@ -50,3 +50,9 @@ export interface PlatformMeta {
   color: string;
   charLimit: number;
 }
+
+/** Metadata for a BYOM AI provider. */
+export interface ProviderMeta {
+  label: string;
+  description: string;
+}
