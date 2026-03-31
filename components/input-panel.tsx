@@ -50,10 +50,10 @@ export function InputPanel() {
   const isEmpty = charCount === 0;
 
   return (
-    <div className="flex flex-col h-full p-4 min-h-0 overflow-hidden">
+    <div className="flex flex-col h-full p-5 min-h-0 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between pb-3">
-        <h2 className="text-sm font-medium text-[var(--text)]">
+        <h2 className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-dim,var(--text-muted))]">
           Input Text
         </h2>
         <CharCounter current={charCount} max={MAX_CHARACTERS} />
@@ -63,8 +63,8 @@ export function InputPanel() {
       <div
         className={cn(
           "flex-1 min-h-0 rounded-md border border-[var(--border)] bg-[var(--bg)]",
-          "transition-colors duration-150",
-          "focus-within:border-[var(--amber)]"
+          "transition-all duration-150",
+          "focus-within:border-[var(--amber)] focus-within:shadow-[0_0_0_2px_rgba(232,168,56,0.15)]"
         )}
       >
         <textarea
@@ -117,10 +117,10 @@ export function InputPanel() {
             disabled={isEmpty}
             className={cn(
               "inline-flex items-center gap-1.5 px-4 py-1.5 h-8 rounded-full",
-              "font-sans text-xs font-medium transition-colors",
+              "font-sans text-xs font-medium transition-all",
               isEmpty
                 ? "bg-[var(--amber)]/10 text-[var(--text-muted)] cursor-not-allowed"
-                : "bg-[var(--amber)] text-[#1A1816] hover:bg-[var(--amber-hover)]"
+                : "bg-[var(--amber)] text-[#1A1816] hover:bg-[var(--amber-hover)] shadow-[0_0_12px_var(--amber-dim)]"
             )}
           >
             <RefreshCw className="size-3.5" />

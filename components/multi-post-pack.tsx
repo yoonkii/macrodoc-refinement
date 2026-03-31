@@ -53,11 +53,11 @@ export function MultiPostPack() {
   }
 
   return (
-    <GlassCard className="mt-3">
-      <div className="p-4">
+    <GlassCard className="mt-3" innerClassName="p-5">
+      <div>
         {/* Header */}
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-sm font-medium text-[var(--text)]">
+          <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-dim,var(--text-muted))]">
             Multi-Post Pack
           </span>
           <div className="flex-1" />
@@ -127,7 +127,14 @@ function PlatformCard({
 
   return (
     <GlassCard>
-      <div className="flex flex-col">
+      <div className="flex flex-col relative overflow-hidden">
+        {/* Top-edge gradient accent bar */}
+        <div
+          className="absolute top-0 left-0 right-0 h-[2px]"
+          style={{
+            background: `linear-gradient(90deg, ${meta.color}, transparent)`,
+          }}
+        />
         {/* Header */}
         <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--border)]">
           <span

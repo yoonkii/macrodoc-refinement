@@ -31,10 +31,10 @@ export function OutputPanel() {
   }
 
   return (
-    <div className="flex flex-col h-full p-4 min-h-0 overflow-hidden">
+    <div className="flex flex-col h-full p-5 min-h-0 overflow-hidden">
       {/* Header */}
       <div className="pb-3 shrink-0">
-        <h2 className="text-sm font-medium text-[var(--text)]">
+        <h2 className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--amber)] opacity-70">
           Refined Text
         </h2>
       </div>

@@ -214,7 +214,7 @@ function ProfileSection({
 }: ProfileSectionProps) {
   return (
     <div className="mb-2">
-      <p className="px-3 mt-4 mb-2 font-mono text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
+      <p className="px-3 mt-5 mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-dim,var(--text-muted))]">
         {title}
       </p>
       {profiles.map((profile) => (
@@ -241,9 +241,9 @@ interface ProfileTileProps {
 
 function ProfileTile({ profile, onToggle, onEdit, onDelete }: ProfileTileProps) {
   return (
-    <div className="border-b border-[var(--border)]">
+    <div className="mx-2 mb-2 rounded-lg border border-white/[0.05] hover:border-white/[0.09] bg-white/[0.02] transition-colors duration-300">
       {/* Name + switch row */}
-      <div className="flex items-center gap-2 px-3 pt-2.5 pb-1">
+      <div className="flex items-center gap-2 px-3 pt-3 pb-1">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <span className="text-sm font-medium text-[var(--text)] truncate">
             {profile.name}
@@ -265,7 +265,7 @@ function ProfileTile({ profile, onToggle, onEdit, onDelete }: ProfileTileProps) 
       </div>
 
       {/* Instructions preview */}
-      <p className="px-3 pb-2 font-sans text-xs text-[var(--text-muted)] leading-snug line-clamp-2">
+      <p className="px-3 pb-2.5 font-sans text-xs text-[var(--text-muted)] leading-snug line-clamp-2">
         {profile.instructions}
       </p>
 

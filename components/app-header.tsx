@@ -36,7 +36,7 @@ export function AppHeader({
       <header
         className={cn(
           "sticky top-0 z-40",
-          "bg-[var(--surface)]",
+          "backdrop-blur-md bg-[var(--bg)]/80",
           "border-b border-[var(--border)]"
         )}
       >
@@ -52,8 +52,8 @@ export function AppHeader({
           </button>
 
           {/* App title */}
-          <h1 className="text-sm font-semibold tracking-tight text-[var(--text)]">
-            MacroDocRefinement
+          <h1 className="text-base font-semibold tracking-tight text-[var(--text)]">
+            MacroDoc<span className="inline-block w-[7px] h-[7px] rounded-full bg-[var(--amber)] align-middle mx-[1px] mb-[1px] shadow-[0_0_8px_rgba(232,168,56,0.25),0_0_20px_rgba(232,168,56,0.15)]" />Refinement
           </h1>
 
           <div className="flex-1" />

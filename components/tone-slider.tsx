@@ -41,7 +41,7 @@ export function ToneSlider() {
   }
 
   return (
-    <div className="flex items-center gap-4 px-4 py-3">
+    <div className="flex items-center gap-4 px-5 py-4">
       {/* Slider area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Tier labels row */}
@@ -74,7 +74,7 @@ export function ToneSlider() {
           min={-1}
           max={1}
           step={0.5}
-          className="[&_[data-slot=slider-track]]:bg-[var(--border)] [&_[data-slot=slider-range]]:bg-[var(--amber)] [&_[data-slot=slider-thumb]]:bg-[var(--amber)] [&_[data-slot=slider-thumb]]:border-[var(--amber)] [&_[data-slot=slider-thumb]]:shadow-none"
+          className="[&_[data-slot=slider-track]]:bg-[var(--border)] [&_[data-slot=slider-range]]:bg-[var(--amber)] [&_[data-slot=slider-thumb]]:bg-[var(--amber)] [&_[data-slot=slider-thumb]]:border-[var(--amber)] [&_[data-slot=slider-thumb]]:shadow-[0_0_0_4px_rgba(232,168,56,0.15),0_0_16px_rgba(232,168,56,0.25)]"
         />
 
         {/* Current tier label */}
@@ -92,8 +92,8 @@ export function ToneSlider() {
           "inline-flex items-center gap-1.5 px-4 py-1.5 h-8 rounded-full shrink-0",
           "font-sans text-xs font-medium transition-colors",
           !hasInput || multiPostStore.isGenerating
-            ? "border border-[var(--border)] text-[var(--text-muted)] cursor-not-allowed"
-            : "border border-[var(--amber)] text-[var(--amber)] hover:bg-[var(--amber)] hover:text-[#1A1816]"
+            ? "bg-[var(--amber)]/10 text-[var(--text-muted)] cursor-not-allowed"
+            : "bg-[var(--amber)] text-[#1A1816] hover:bg-[var(--amber-hover)] shadow-[0_0_20px_var(--amber-dim),0_0_40px_rgba(232,168,56,0.08)]"
         )}
       >
         {multiPostStore.isGenerating ? (

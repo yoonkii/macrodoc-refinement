@@ -48,7 +48,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col h-dvh overflow-hidden">
+    <div className="relative z-10 flex flex-col h-dvh overflow-hidden">
       <AppHeader
         showStylePanel={showStylePanel}
         onToggleStylePanel={handleToggleStylePanel}
@@ -61,16 +61,16 @@ export default function Home() {
           <div className="flex-[3] flex flex-col gap-3 md:gap-4 min-h-0 min-w-0">
             {/* Split pane: side-by-side on desktop, stacked on mobile */}
             <div className="flex-1 flex md:flex-row flex-col gap-3 min-h-0">
-              <GlassCard className="flex-1 min-h-0 flex flex-col">
+              <GlassCard className="flex-1 min-h-0" innerClassName="flex flex-col">
                 <InputPanel />
               </GlassCard>
-              <GlassCard className="flex-1 min-h-0 flex flex-col">
+              <GlassCard className="flex-1 min-h-0" innerClassName="flex flex-col">
                 <OutputPanel />
               </GlassCard>
             </div>
 
             {/* Tone slider */}
-            <GlassCard className="shrink-0">
+            <GlassCard className="shrink-0" innerClassName="px-0 py-0">
               <ToneSlider />
             </GlassCard>
 
@@ -81,7 +81,7 @@ export default function Home() {
           {/* Style panel sidebar (desktop only) */}
           {showStylePanel && (
             <div className="hidden md:block w-[280px] shrink-0 min-h-0">
-              <GlassCard className="h-full flex flex-col">
+              <GlassCard className="h-full" innerClassName="flex flex-col">
                 <StylePanel />
               </GlassCard>
             </div>
