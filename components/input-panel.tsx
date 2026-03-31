@@ -50,67 +50,41 @@ export function InputPanel() {
   const isEmpty = charCount === 0;
 
   return (
-    <div className="flex flex-col h-full p-5 min-h-0 overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-3">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
+      {/* Header — matches output panel tab bar height */}
+      <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-[var(--border)]">
         <h2 className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-dim,var(--text-muted))]">
           Input Text
         </h2>
         <CharCounter current={charCount} max={MAX_CHARACTERS} />
       </div>
 
-      {/* Textarea container with amber focus border */}
-      <div
-        className={cn(
-          "flex-1 min-h-0 rounded-md border border-[var(--border)] bg-[var(--bg)]",
-          "transition-all duration-150",
-          "focus-within:border-[var(--amber)] focus-within:shadow-[0_0_0_2px_rgba(232,168,56,0.15)]"
-        )}
-      >
-        <textarea
-          ref={textareaRef}
-          defaultValue={store.inputText}
-          onChange={handleChange}
-          placeholder="Type or paste your text here..."
+      {/* Content area */}
+      <div className="flex-1 min-h-0 flex flex-col p-5 pt-3">
+        {/* Textarea container with amber focus border */}
+        <div
           className={cn(
-            "w-full h-full resize-none p-3",
-            "bg-transparent text-[var(--text)] placeholder:text-[var(--text-muted)]",
-            "font-sans text-sm leading-relaxed",
-            "outline-none border-none rounded-md"
+            "flex-1 min-h-0 rounded-md border border-[var(--border)] bg-[var(--bg)]",
+            "transition-all duration-150",
+            "focus-within:border-[var(--amber)] focus-within:shadow-[0_0_0_2px_rgba(232,168,56,0.15)]"
           )}
-        />
-      </div>
-
-      {/* Legal disclaimer */}
-      <p className="shrink-0 pt-2 pb-2 text-[10px] text-[var(--text-muted)] leading-relaxed">
-        Text is processed by Google&apos;s Gemini AI. By using this service, you
-        confirm that you are at least 18 years of age. Users under 18 are not
-        permitted to use this service.
-      </p>
-
-      {/* Action buttons */}
-      <div className="shrink-0 flex items-center justify-between">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleClear}
-          className="h-8 text-xs text-[var(--error)] border-[var(--error)]/30 hover:bg-[var(--error-dim)]"
         >
-          <X className="size-3.5" data-icon="inline-start" />
-          Clear
-        </Button>
+          <textarea
+            ref={textareaRef}
+            defaultValue={store.inputText}
+            onChange={handleChange}
+            placeholder="Type or paste your text here..."
+            className={cn(
+              "w-full h-full resize-none p-3",
+              "bg-transparent text-[var(--text)] placeholder:text-[var(--text-muted)]",
+              "font-sans text-sm leading-relaxed",
+              "outline-none border-none rounded-md"
+            )}
+          />
+        </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePaste}
-            className="h-8 text-xs text-[var(--amber)] border-[var(--amber)]/30 hover:bg-[var(--amber-dim)]"
-          >
-            <ClipboardPaste className="size-3.5" data-icon="inline-start" />
-            Paste
-          </Button>
-
+        {/* Action buttons */}
+        <div className="shrink-0 flex items-center justify-between pt-3">
           <button
             type="button"
             onClick={() => store.processNow()}
@@ -126,6 +100,28 @@ export function InputPanel() {
             <RefreshCw className="size-3.5" />
             Process Now
           </button>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePaste}
+              className="h-8 text-xs text-[var(--amber)] border-[var(--amber)]/30 hover:bg-[var(--amber-dim)]"
+            >
+              <ClipboardPaste className="size-3.5" data-icon="inline-start" />
+              Paste
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClear}
+              className="h-8 text-xs text-[var(--error)] border-[var(--error)]/30 hover:bg-[var(--error-dim)]"
+            >
+              <X className="size-3.5" data-icon="inline-start" />
+              Clear
+            </Button>
+          </div>
         </div>
       </div>
     </div>

@@ -75,6 +75,11 @@ export default function Home() {
           )}
         </div>
 
+        {/* Shared legal disclaimer */}
+        <p className="shrink-0 text-[10px] text-[var(--text-muted)] text-center px-4 py-1">
+          Text is processed by Google&apos;s Gemini AI. By using this service, you confirm you are at least 18 years of age.
+        </p>
+
         {/* Footer */}
         <footer className="shrink-0 border-t border-[var(--border)] py-2 px-4 text-center">
           <Link

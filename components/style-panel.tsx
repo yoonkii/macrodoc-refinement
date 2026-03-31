@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStyleProfilesStore } from "@/lib/stores/style-profiles";
@@ -15,6 +15,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { ToneSlider } from "@/components/tone-slider";
+
+const PROOFREAD_ONLY_NAME = "Proofread Only";
 
 interface StylePanelProps {
   isInDrawer?: boolean;
@@ -33,11 +35,54 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
     null
   );
 
-  // Filter out platform profiles — they are now tabs in the output panel
-  const personalityProfiles = profiles.filter((p) => p.type === "personality");
-  const customProfiles = profiles.filter(
-    (p) => p.type === "custom" || p.type === "learned"
+  // Identify the Proofread Only profile and personality profiles
+  const proofreadProfile = profiles.find((p) => p.name === PROOFREAD_ONLY_NAME);
+  const personalityProfiles = profiles.filter(
+    (p) => p.type === "personality" && p.name !== PROOFREAD_ONLY_NAME
   );
+  const customProfiles = profiles.filter(
+    (p) =>
+      (p.type === "custom" || p.type === "learned") &&
+      p.name !== PROOFREAD_ONLY_NAME
+  );
+
+  const anyPersonalityActive = personalityProfiles.some((p) => p.isActive);
+  const isProofreadActive = proofreadProfile?.isActive ?? false;
+
+  // Auto-toggle logic: mutual exclusivity between Proofread Only and personality modes
+  useEffect(() => {
+    if (!proofreadProfile) return;
+
+    // If any personality mode is active, deactivate Proofread Only
+    if (anyPersonalityActive && isProofreadActive) {
+      store.toggleProfileActive(proofreadProfile.id);
+      return;
+    }
+
+    // If no personality mode is active and Proofread Only is not active, activate it
+    if (!anyPersonalityActive && !isProofreadActive) {
+      store.toggleProfileActive(proofreadProfile.id);
+    }
+  }, [anyPersonalityActive, isProofreadActive, proofreadProfile, store]);
+
+  // When user manually toggles Proofread Only ON, turn off all personality modes
+  const handleProofreadToggle = useCallback(() => {
+    if (!proofreadProfile) return;
+
+    if (!isProofreadActive) {
+      // Turning ON proofread — turn off all personality modes
+      for (const p of personalityProfiles) {
+        if (p.isActive) {
+          store.toggleProfileActive(p.id);
+        }
+      }
+      // The useEffect will auto-activate proofread since no personality is active
+    } else {
+      // Turning OFF proofread — the useEffect will re-activate it if no personality is active
+      // So this is effectively a no-op unless a personality gets toggled on
+      store.toggleProfileActive(proofreadProfile.id);
+    }
+  }, [isProofreadActive, proofreadProfile, personalityProfiles, store]);
 
   function handleAdd() {
     setEditingProfile(null);
@@ -94,6 +139,38 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
   const content = (
     <>
       <div className="flex-1 overflow-y-auto px-2 py-3">
+        {/* Proofread Only — standalone toggle at top */}
+        {proofreadProfile && (
+          <div className="mx-2 mb-4">
+            <div
+              className={cn(
+                "flex items-center justify-between px-3 py-2 rounded-lg border transition-colors duration-200",
+                isProofreadActive
+                  ? "border-[var(--amber)]/30 bg-[var(--amber)]/5"
+                  : "border-white/[0.05] bg-white/[0.02] hover:border-white/[0.09]"
+              )}
+            >
+              <span
+                className={cn(
+                  "font-mono text-[10px] font-semibold uppercase tracking-[0.1em]",
+                  isProofreadActive
+                    ? "text-[var(--amber)]"
+                    : "text-[var(--text-muted)]"
+                )}
+              >
+                Proofread Only
+              </span>
+              <Switch
+                checked={isProofreadActive}
+                onCheckedChange={handleProofreadToggle}
+                className={cn(
+                  isProofreadActive && "data-checked:bg-[var(--amber)]"
+                )}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Personality Modes */}
         {personalityProfiles.length > 0 && (
           <ProfileSection

@@ -176,7 +176,7 @@ export const DEFAULT_PROFILES: StyleProfile[] = [
   {
     id: defaultId('custom'),
     name: 'Gen Z Style',
-    type: 'custom',
+    type: 'personality',
     toneBaseline: 0.0,
     charLimit: null,
     instructions:
