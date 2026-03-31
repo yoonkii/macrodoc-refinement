@@ -172,9 +172,17 @@ export default function SettingsPage() {
             <p className="text-base font-semibold text-[var(--text)]">
               {currentProviderLabel} &mdash; {currentModelLabel}
             </p>
-            {config.provider === "default" && (
+            {config.provider === "default" ? (
               <p className="text-xs text-[var(--text-muted)] mt-1">
                 Free tier (30 requests/minute shared limit)
+              </p>
+            ) : !config.apiKey.trim() ? (
+              <p className="text-xs text-[var(--error)] mt-1">
+                ⚠ API key not set — using free tier (Default) until you add a key below
+              </p>
+            ) : (
+              <p className="text-xs text-emerald-500 mt-1">
+                ✓ API key configured — using your own key
               </p>
             )}
           </div>

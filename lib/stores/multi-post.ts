@@ -99,10 +99,10 @@ export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
       });
 
       const modelConfig = useModelConfigStore.getState().config;
-      const results =
-        modelConfig.provider === 'default'
-          ? await generateMultiPost(prompt)
-          : await generateMultiPostViaBYOM(prompt);
+      const useDefault = modelConfig.provider === 'default' || !modelConfig.apiKey.trim();
+      const results = useDefault
+        ? await generateMultiPost(prompt)
+        : await generateMultiPostViaBYOM(prompt);
 
       const outputs: Record<string, string> = { ...results };
       const errors: Record<string, boolean> = {};
@@ -155,10 +155,10 @@ export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
       });
 
       const modelConfig = useModelConfigStore.getState().config;
-      const results =
-        modelConfig.provider === 'default'
-          ? await generateMultiPost(prompt)
-          : await generateMultiPostViaBYOM(prompt);
+      const useDefault = modelConfig.provider === 'default' || !modelConfig.apiKey.trim();
+      const results = useDefault
+        ? await generateMultiPost(prompt)
+        : await generateMultiPostViaBYOM(prompt);
 
       set((state) => {
         const updatedOutputs = { ...state.platformOutputs };

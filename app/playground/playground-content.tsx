@@ -180,8 +180,8 @@ export function PlaygroundContent() {
 
       {/* Main content — two-column layout */}
       <main className="flex-1 flex flex-col lg:flex-row min-h-0 p-4 md:p-5 gap-4">
-        {/* Left column: Configuration (60%) */}
-        <div className="lg:flex-[3] min-h-0 overflow-y-auto">
+        {/* Left column: Configuration (50%) */}
+        <div className="lg:flex-1 min-h-0 overflow-y-auto">
           <GlassCard className="h-full" innerClassName="flex flex-col p-5">
             <h2 className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-dim,var(--text-muted))] mb-4">
               Configuration
@@ -272,25 +272,24 @@ export function PlaygroundContent() {
           </GlassCard>
         </div>
 
-        {/* Right column: Live preview (40%) */}
-        <div className="lg:flex-[2] min-h-0 flex flex-col">
+        {/* Right column: Live preview (50%) */}
+        <div className="lg:flex-1 min-h-0 flex flex-col">
           <GlassCard className="h-full" innerClassName="flex flex-col p-5">
             <h2 className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-dim,var(--text-muted))] mb-4">
               Live Preview
             </h2>
 
             <div className="flex-1 flex flex-col gap-3 min-h-0">
-              {/* Test text input */}
-              <div>
-                <label className="block text-sm font-medium text-[var(--text)] mb-1.5">
+              {/* Test text input — equal height with output */}
+              <div className="flex-1 min-h-0 flex flex-col">
+                <label className="block text-sm font-medium text-[var(--text)] mb-1.5 shrink-0">
                   Test Text
                 </label>
                 <textarea
                   value={testText}
                   onChange={(e) => setTestText(e.target.value)}
                   placeholder="Enter sample text to test your style..."
-                  rows={4}
-                  className="w-full rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none resize-none focus:border-[var(--amber)] transition-colors"
+                  className="flex-1 w-full min-h-0 rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none resize-none focus:border-[var(--amber)] transition-colors"
                 />
               </div>
 
@@ -319,7 +318,11 @@ export function PlaygroundContent() {
                 )}
               </button>
 
-              {/* Output area */}
+              {/* Output area — equal height with test text */}
+              <div className="flex-1 min-h-0 flex flex-col">
+                <label className="block text-sm font-medium text-[var(--text)] mb-1.5 shrink-0">
+                  Preview
+                </label>
               <div className="flex-1 min-h-0 rounded-md border border-[var(--border)] bg-[var(--bg)] overflow-auto">
                 {isStreaming && testOutput.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full p-4">
@@ -346,6 +349,7 @@ export function PlaygroundContent() {
                     </p>
                   </div>
                 )}
+              </div>
               </div>
             </div>
           </GlassCard>

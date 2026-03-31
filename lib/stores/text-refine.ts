@@ -96,10 +96,11 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
       const modelConfig = useModelConfigStore.getState().config;
 
       // Route to BYOM provider or default Cloud Run proxy
-      const stream =
-        modelConfig.provider === 'default'
-          ? streamRefine(prompt, signal)
-          : streamWithProvider(prompt, modelConfig, signal);
+      // Fall back to default if provider is set but API key is missing
+      const useDefault = modelConfig.provider === 'default' || !modelConfig.apiKey.trim();
+      const stream = useDefault
+        ? streamRefine(prompt, signal)
+        : streamWithProvider(prompt, modelConfig, signal);
 
       for await (const chunk of stream) {
         // Check if we were aborted between chunks
