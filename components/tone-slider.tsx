@@ -41,18 +41,18 @@ export function ToneSlider() {
   }
 
   return (
-    <div className="flex items-center gap-5 px-6 py-6">
+    <div className="flex items-center gap-4 px-4 py-3">
       {/* Slider area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Tier labels row */}
-        <div className="flex justify-between px-3 mb-3">
+        <div className="flex justify-between px-1 mb-2">
           {TONE_TIER_ENTRIES.map((tier) => {
             const isActive = snappedValue === tier.value;
             return (
               <span
                 key={tier.value}
                 className={cn(
-                  "font-mono text-xs tracking-wide text-center flex-1 truncate transition-colors duration-150",
+                  "font-mono text-[11px] tracking-wide text-center flex-1 truncate transition-colors duration-150",
                   isActive
                     ? "text-[var(--amber)] font-semibold"
                     : "text-[var(--text-muted)] font-normal"
@@ -74,11 +74,11 @@ export function ToneSlider() {
           min={-1}
           max={1}
           step={0.5}
-          className="[&_[data-slot=slider-track]]:bg-[var(--elevated)] [&_[data-slot=slider-range]]:bg-[var(--amber)] [&_[data-slot=slider-thumb]]:bg-[var(--amber)] [&_[data-slot=slider-thumb]]:border-[var(--amber)]"
+          className="[&_[data-slot=slider-track]]:bg-[var(--border)] [&_[data-slot=slider-range]]:bg-[var(--amber)] [&_[data-slot=slider-thumb]]:bg-[var(--amber)] [&_[data-slot=slider-thumb]]:border-[var(--amber)] [&_[data-slot=slider-thumb]]:shadow-none"
         />
 
         {/* Current tier label */}
-        <p className="text-center font-mono text-xs font-medium text-[var(--amber)] tracking-wide mt-1.5">
+        <p className="text-center font-mono text-[11px] font-medium text-[var(--amber)] tracking-wide mt-1">
           {currentTierLabel}
         </p>
       </div>
@@ -89,17 +89,17 @@ export function ToneSlider() {
         onClick={handleGenerateAll}
         disabled={!hasInput || multiPostStore.isGenerating}
         className={cn(
-          "inline-flex items-center gap-2 px-6 py-3 rounded-full shrink-0",
-          "font-sans text-sm font-medium transition-all",
+          "inline-flex items-center gap-1.5 px-4 py-1.5 h-8 rounded-full shrink-0",
+          "font-sans text-xs font-medium transition-colors",
           !hasInput || multiPostStore.isGenerating
-            ? "bg-[var(--amber)]/10 text-[var(--text-muted)] cursor-not-allowed"
-            : "bg-[var(--amber)] text-[#1A1816] hover:bg-[var(--amber-hover)] hover:scale-[1.03] active:scale-100"
+            ? "border border-[var(--border)] text-[var(--text-muted)] cursor-not-allowed"
+            : "border border-[var(--amber)] text-[var(--amber)] hover:bg-[var(--amber)] hover:text-[#1A1816]"
         )}
       >
         {multiPostStore.isGenerating ? (
-          <Loader2 className="size-4 animate-spin" />
+          <Loader2 className="size-3.5 animate-spin" />
         ) : (
-          <LayoutGrid className="size-4" />
+          <LayoutGrid className="size-3.5" />
         )}
         {multiPostStore.isGenerating ? "Generating..." : "Generate All"}
       </button>

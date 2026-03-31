@@ -36,24 +36,24 @@ export function AppHeader({
       <header
         className={cn(
           "sticky top-0 z-40",
-          "backdrop-blur-md bg-[var(--bg)]/80",
+          "bg-[var(--surface)]",
           "border-b border-[var(--border)]"
         )}
       >
-        <div className="flex items-center h-14 px-5">
+        <div className="flex items-center h-12 px-4">
           {/* Mobile hamburger */}
           <button
             type="button"
             onClick={onToggleMobileDrawer}
-            className="md:hidden p-2 -ml-2 min-w-[44px] min-h-[44px] inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+            className="md:hidden p-2 -ml-2 min-w-[36px] min-h-[36px] inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
             aria-label="Open menu"
           >
-            <Menu className="size-5" />
+            <Menu className="size-4" />
           </button>
 
           {/* App title */}
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-[var(--text)]" style={{ letterSpacing: "-0.02em" }}>
-            MacroDoc<span className="text-[var(--amber)]">.</span>Refinement
+          <h1 className="text-sm font-semibold tracking-tight text-[var(--text)]">
+            MacroDocRefinement
           </h1>
 
           <div className="flex-1" />
@@ -63,7 +63,7 @@ export function AppHeader({
             type="button"
             onClick={onToggleStylePanel}
             className={cn(
-              "hidden md:inline-flex items-center justify-center p-2 min-w-[44px] min-h-[44px] rounded-lg transition-colors",
+              "hidden md:inline-flex items-center justify-center p-1.5 min-w-[32px] min-h-[32px] rounded-md transition-colors",
               showStylePanel
                 ? "text-[var(--amber)]"
                 : "text-[var(--text-muted)] hover:text-[var(--text)]"
@@ -71,9 +71,9 @@ export function AppHeader({
             aria-label={showStylePanel ? "Hide Style Panel" : "Show Style Panel"}
           >
             {showStylePanel ? (
-              <PanelRightClose className="size-5" />
+              <PanelRightClose className="size-4" />
             ) : (
-              <PanelRightOpen className="size-5" />
+              <PanelRightOpen className="size-4" />
             )}
           </button>
 
@@ -81,13 +81,13 @@ export function AppHeader({
           <button
             type="button"
             onClick={handleThemeToggle}
-            className="p-2 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-lg text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+            className="p-1.5 min-w-[32px] min-h-[32px] inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
             aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           >
             {theme === "dark" ? (
-              <Sun className="size-5" />
+              <Sun className="size-4" />
             ) : (
-              <Moon className="size-5" />
+              <Moon className="size-4" />
             )}
           </button>
 
@@ -95,10 +95,10 @@ export function AppHeader({
           <button
             type="button"
             onClick={() => setAboutOpen(true)}
-            className="p-2 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-lg text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+            className="p-1.5 min-w-[32px] min-h-[32px] inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
             aria-label="About"
           >
-            <Info className="size-5" />
+            <Info className="size-4" />
           </button>
         </div>
       </header>

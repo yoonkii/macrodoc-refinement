@@ -31,10 +31,10 @@ export function OutputPanel() {
   }
 
   return (
-    <div className="flex flex-col h-full p-6">
+    <div className="flex flex-col h-full p-4">
       {/* Header */}
-      <div className="pb-4">
-        <h2 className="font-display text-lg font-semibold text-[var(--text)]">
+      <div className="pb-3">
+        <h2 className="text-sm font-medium text-[var(--text)]">
           Refined Text
         </h2>
       </div>
@@ -42,18 +42,18 @@ export function OutputPanel() {
       {/* Content area */}
       <div
         className={cn(
-          "flex-1 rounded-2xl border border-[var(--border)] overflow-hidden",
+          "flex-1 rounded-md border border-[var(--border)] overflow-hidden",
           "bg-[var(--bg)]"
         )}
       >
         {hasError ? (
           /* Error state */
-          <div className="flex flex-col items-center justify-center h-full p-6 bg-[var(--error-dim)]">
-            <AlertCircle className="size-12 text-[var(--error)] mb-4" />
-            <p className="font-display font-bold text-lg text-[var(--error)] mb-2">
+          <div className="flex flex-col items-center justify-center h-full p-4 bg-[var(--error-dim)]">
+            <AlertCircle className="size-8 text-[var(--error)] mb-3" />
+            <p className="font-semibold text-sm text-[var(--error)] mb-1">
               Error occurred
             </p>
-            <p className="font-sans text-sm text-[var(--text)] text-center mb-6">
+            <p className="font-sans text-xs text-[var(--text)] text-center mb-4">
               {store.errorMessage}
             </p>
             <button
@@ -62,41 +62,41 @@ export function OutputPanel() {
                 store.clearError();
                 store.processNow();
               }}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-[var(--amber)] text-[#1A1816] font-sans text-sm font-medium hover:bg-[var(--amber-hover)]"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[var(--amber)] text-[#1A1816] font-sans text-xs font-medium hover:bg-[var(--amber-hover)]"
             >
-              <Loader2 className="size-4" />
+              <Loader2 className="size-3.5" />
               Try Again
             </button>
           </div>
         ) : isLoadingWithoutText ? (
           /* Loading state */
-          <div className="flex flex-col items-center justify-center h-full p-6">
-            <Loader2 className="size-8 text-[var(--amber)] animate-spin mb-4" />
-            <p className="font-sans text-[var(--text-muted)] font-medium">
+          <div className="flex flex-col items-center justify-center h-full p-4">
+            <Loader2 className="size-5 text-[var(--amber)] animate-spin mb-3" />
+            <p className="font-sans text-xs text-[var(--text-muted)] font-medium">
               Processing your text...
             </p>
           </div>
         ) : !hasText ? (
           /* Empty state */
-          <div className="flex flex-col items-center justify-center h-full p-6">
-            <Type className="w-12 h-12 text-[var(--text-muted)] opacity-15 mb-5" />
-            <p className="font-sans text-[var(--text-muted)] text-base text-center animate-pulse">
+          <div className="flex flex-col items-center justify-center h-full p-4">
+            <Type className="size-8 text-[var(--text-muted)] opacity-15 mb-3" />
+            <p className="font-sans text-xs text-[var(--text-muted)] text-center">
               Your refined text will appear here
             </p>
-            <p className="font-sans text-[var(--text-muted)] text-sm text-center opacity-50 mt-2">
+            <p className="font-sans text-[10px] text-[var(--text-muted)] text-center opacity-50 mt-1">
               Enter some text in the input panel to begin
             </p>
           </div>
         ) : (
           /* Text display: streaming or complete */
-          <div className="h-full overflow-y-auto p-4">
+          <div className="h-full overflow-y-auto p-3">
             {isStreamingWithText ? (
-              <p className="font-sans text-base text-[var(--text)] leading-relaxed whitespace-pre-wrap">
+              <p className="font-sans text-sm text-[var(--text)] leading-relaxed whitespace-pre-wrap">
                 {store.refinedText}
                 <StreamingCursor />
               </p>
             ) : (
-              <p className="font-sans text-base text-[var(--text)] leading-relaxed whitespace-pre-wrap select-text">
+              <p className="font-sans text-sm text-[var(--text)] leading-relaxed whitespace-pre-wrap select-text">
                 {store.refinedText}
               </p>
             )}
@@ -106,31 +106,33 @@ export function OutputPanel() {
 
       {/* Action buttons (only when complete) */}
       {isComplete && (
-        <div className="flex items-center justify-end gap-3 pt-4">
+        <div className="flex items-center justify-end gap-2 pt-3">
           <Button
             variant="outline"
+            size="sm"
             onClick={() => store.setRefinedText("")}
-            className="text-[var(--error)] border-[var(--error)]/30 hover:bg-[var(--error-dim)]"
+            className="h-8 text-xs text-[var(--error)] border-[var(--error)]/30 hover:bg-[var(--error-dim)]"
           >
-            <X className="size-4" data-icon="inline-start" />
+            <X className="size-3.5" data-icon="inline-start" />
             Clear
           </Button>
 
           <Button
             variant="outline"
+            size="sm"
             onClick={handleCopy}
-            className="text-[var(--amber)] border-[var(--amber)]/30 hover:bg-[var(--amber-dim)]"
+            className="h-8 text-xs text-[var(--amber)] border-[var(--amber)]/30 hover:bg-[var(--amber-dim)]"
           >
-            <Copy className="size-4" data-icon="inline-start" />
+            <Copy className="size-3.5" data-icon="inline-start" />
             Copy
           </Button>
 
           <button
             type="button"
             onClick={() => store.acceptRefinement()}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[var(--amber)] text-[#1A1816] font-sans text-sm font-medium hover:bg-[var(--amber-hover)] hover:scale-[1.03] active:scale-100 transition-all"
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 h-8 rounded-full bg-[var(--amber)] text-[#1A1816] font-sans text-xs font-medium hover:bg-[var(--amber-hover)] transition-colors"
           >
-            <Check className="size-4" />
+            <Check className="size-3.5" />
             Accept
           </button>
         </div>

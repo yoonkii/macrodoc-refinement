@@ -5,7 +5,6 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStyleProfilesStore } from "@/lib/stores/style-profiles";
 import type { StyleProfile, ProfileType } from "@/lib/types";
-import { GlassCard } from "@/components/glass-card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import {
@@ -124,13 +123,13 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
       </div>
 
       {/* Add new style button */}
-      <div className="p-4">
+      <div className="p-3">
         <button
           type="button"
           onClick={handleAdd}
-          className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[var(--amber)] text-[#1A1816] font-sans text-sm font-medium hover:bg-[var(--amber-hover)] transition-colors"
+          className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-1.5 h-8 rounded-full border border-[var(--amber)] text-[var(--amber)] font-sans text-xs font-medium hover:bg-[var(--amber)] hover:text-[#1A1816] transition-colors"
         >
-          <Plus className="size-4" />
+          <Plus className="size-3.5" />
           Add New Style
         </button>
       </div>
@@ -184,8 +183,8 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="px-4 pt-5 pb-1 text-center">
-        <h2 className="font-display text-lg font-bold text-[var(--amber)] mb-6">
+      <div className="px-4 pt-4 pb-1">
+        <h2 className="text-sm font-semibold text-[var(--amber)] mb-3">
           Style Profiles
         </h2>
       </div>
@@ -212,8 +211,8 @@ function ProfileSection({
   onDelete,
 }: ProfileSectionProps) {
   return (
-    <div className="mb-4">
-      <p className="px-3 mt-6 mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--text-muted)]">
+    <div className="mb-2">
+      <p className="px-3 mt-4 mb-2 font-mono text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
         {title}
       </p>
       {profiles.map((profile) => (
@@ -240,57 +239,53 @@ interface ProfileTileProps {
 
 function ProfileTile({ profile, onToggle, onEdit, onDelete }: ProfileTileProps) {
   return (
-    <div className="px-1 py-1">
-      <GlassCard>
-        <div>
-          {/* Name + switch row */}
-          <div className="flex items-center gap-2 px-4 pt-3.5 pb-1.5">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <span className="font-display text-sm font-semibold text-[var(--text)] truncate">
-                {profile.name}
-              </span>
-              {profile.charLimit != null && (
-                <span className="shrink-0 font-mono text-[10px] font-medium px-2.5 py-0.5 rounded-full bg-[var(--amber-dim)] text-[var(--amber)]">
-                  {profile.charLimit} chars
-                </span>
-              )}
-            </div>
-            <Switch
-              checked={profile.isActive}
-              onCheckedChange={onToggle}
-              className={cn(
-                profile.isActive &&
-                  "data-checked:bg-[var(--amber)]"
-              )}
-            />
-          </div>
-
-          {/* Instructions preview */}
-          <p className="px-4 pb-3.5 font-sans text-[13px] text-[var(--text-muted)] leading-snug line-clamp-2">
-            {profile.instructions}
-          </p>
-
-          {/* Footer actions */}
-          <div className="border-t border-black/[0.04] dark:border-white/[0.04] flex justify-end gap-1 px-2 py-1">
-            <button
-              type="button"
-              onClick={onEdit}
-              className="inline-flex items-center gap-1 px-3 py-2 min-h-[44px] text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
-            >
-              <Pencil className="size-3.5" />
-              Edit
-            </button>
-            <button
-              type="button"
-              onClick={onDelete}
-              className="inline-flex items-center gap-1 px-3 py-2 min-h-[44px] text-xs text-[var(--error)] hover:text-[var(--error)] transition-colors"
-            >
-              <Trash2 className="size-3.5" />
-              Delete
-            </button>
-          </div>
+    <div className="border-b border-[var(--border)]">
+      {/* Name + switch row */}
+      <div className="flex items-center gap-2 px-3 pt-2.5 pb-1">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <span className="text-sm font-medium text-[var(--text)] truncate">
+            {profile.name}
+          </span>
+          {profile.charLimit != null && (
+            <span className="shrink-0 font-mono text-[10px] font-medium px-2 py-0.5 rounded-md bg-[var(--amber-dim)] text-[var(--amber)]">
+              {profile.charLimit}
+            </span>
+          )}
         </div>
-      </GlassCard>
+        <Switch
+          checked={profile.isActive}
+          onCheckedChange={onToggle}
+          className={cn(
+            profile.isActive &&
+              "data-checked:bg-[var(--amber)]"
+          )}
+        />
+      </div>
+
+      {/* Instructions preview */}
+      <p className="px-3 pb-2 font-sans text-xs text-[var(--text-muted)] leading-snug line-clamp-2">
+        {profile.instructions}
+      </p>
+
+      {/* Footer actions */}
+      <div className="flex justify-end gap-1 px-2 pb-1.5">
+        <button
+          type="button"
+          onClick={onEdit}
+          className="inline-flex items-center gap-1 px-2 py-1 text-[10px] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+        >
+          <Pencil className="size-3" />
+          Edit
+        </button>
+        <button
+          type="button"
+          onClick={onDelete}
+          className="inline-flex items-center gap-1 px-2 py-1 text-[10px] text-[var(--error)] hover:text-[var(--error)] transition-colors"
+        >
+          <Trash2 className="size-3" />
+          Delete
+        </button>
+      </div>
     </div>
   );
 }
@@ -375,7 +370,7 @@ function ProfileFormDialog({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Professional, Casual, Academic"
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none focus:ring-2 focus:ring-amber-500/40"
+              className="w-full rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--amber)]"
             />
           </div>
 
@@ -389,7 +384,7 @@ function ProfileFormDialog({
               onChange={(e) => setInstructions(e.target.value)}
               placeholder="Describe how text should be refined"
               rows={3}
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none resize-none focus:ring-2 focus:ring-amber-500/40"
+              className="w-full rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none resize-none focus:border-[var(--amber)]"
             />
           </div>
 
@@ -405,13 +400,13 @@ function ProfileFormDialog({
                   onChange={(e) => updateFewShot(index, e.target.value)}
                   placeholder='Example: Instead of X, write Y'
                   rows={2}
-                  className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none resize-none focus:ring-2 focus:ring-amber-500/40"
+                  className="flex-1 rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none resize-none focus:border-[var(--amber)]"
                 />
                 {index > 0 && (
                   <button
                     type="button"
                     onClick={() => removeFewShot(index)}
-                    className="self-start p-2 text-[var(--error)] hover:bg-[var(--error-dim)] rounded-lg transition-colors"
+                    className="self-start p-1.5 text-[var(--error)] hover:bg-[var(--error-dim)] rounded-md transition-colors"
                     aria-label="Remove example"
                   >
                     <Trash2 className="size-4" />
@@ -439,7 +434,7 @@ function ProfileFormDialog({
             onClick={handleSubmit}
             disabled={!name.trim()}
             className={cn(
-              "inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+              "inline-flex items-center px-4 py-1.5 rounded-md text-xs font-medium transition-colors",
               name.trim()
                 ? "bg-[var(--amber)] text-[#1A1816] hover:bg-[var(--amber-hover)]"
                 : "bg-[var(--elevated)] text-[var(--text-muted)] cursor-not-allowed"

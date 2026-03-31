@@ -53,11 +53,11 @@ export function MultiPostPack() {
   }
 
   return (
-    <GlassCard className="mt-4">
-      <div className="p-6">
+    <GlassCard className="mt-3">
+      <div className="p-4">
         {/* Header */}
-        <div className="flex items-center gap-2.5 mb-4">
-          <span className="font-display text-base font-semibold text-[var(--text)]">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-sm font-medium text-[var(--text)]">
             Multi-Post Pack
           </span>
           <div className="flex-1" />
@@ -78,7 +78,7 @@ export function MultiPostPack() {
 
         {/* Global error */}
         {hasGlobalError && !hasOutputs && (
-          <div className="rounded-xl border border-[var(--error)]/20 bg-[var(--error-dim)] p-4 mb-4">
+          <div className="rounded-md border border-[var(--error)]/20 bg-[var(--error-dim)] p-3 mb-3">
             <p className="font-sans text-sm text-[var(--error)]">
               {multiPostStore.errorMessage}
             </p>
@@ -86,7 +86,7 @@ export function MultiPostPack() {
         )}
 
         {/* Platform cards grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           {PLATFORM_KEYS.map((platform) => (
             <PlatformCard
               key={platform}
@@ -128,28 +128,24 @@ function PlatformCard({
   return (
     <GlassCard>
       <div className="flex flex-col">
-        {/* Top-edge gradient accent */}
-        <div
-          className="h-0.5 rounded-t-[20px]"
-          style={{
-            background: `linear-gradient(to right, ${meta.color}99, transparent)`,
-          }}
-        />
-
         {/* Header */}
-        <div className="flex items-center gap-2 px-3.5 py-2.5 border-b border-black/[0.04] dark:border-white/[0.04]">
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--border)]">
           <span
-            className="font-display text-[13px] font-semibold text-[var(--text)] truncate flex-1"
+            className="inline-block size-2 rounded-full shrink-0"
+            style={{ backgroundColor: meta.color }}
+          />
+          <span
+            className="text-xs font-medium text-[var(--text)] truncate flex-1"
           >
             {meta.label}
           </span>
           {output && !isLoading && (
             <span
               className={cn(
-                "font-mono text-[10px] font-medium px-2.5 py-0.5 rounded-full",
+                "font-mono text-[10px] font-medium px-2 py-0.5 rounded-md",
                 isOverLimit
                   ? "bg-[var(--error-dim)] text-[var(--error)]"
-                  : "bg-black/[0.06] dark:bg-white/[0.06]"
+                  : "bg-[var(--elevated)] text-[var(--text-muted)]"
               )}
               style={!isOverLimit ? { color: meta.color } : undefined}
             >
@@ -159,49 +155,45 @@ function PlatformCard({
         </div>
 
         {/* Body */}
-        <div className="min-h-[120px] flex-1">
+        <div className="min-h-[100px] flex-1">
           {isLoading ? (
             /* Skeleton shimmer */
-            <div className="p-4 space-y-2.5">
+            <div className="p-3 space-y-2">
               {[0.7, 0.85, 0.9, 0.5].map((width, i) => (
                 <div
                   key={i}
-                  className="h-3.5 rounded-md bg-[var(--elevated)] animate-pulse"
+                  className="h-3 rounded-sm bg-[var(--elevated)] animate-pulse"
                   style={{ width: `${width * 100}%` }}
                 />
               ))}
             </div>
           ) : hasError ? (
             /* Error state */
-            <div className="flex flex-col items-center justify-center h-full p-5">
-              <AlertCircle className="size-7 text-[var(--error)] mb-2.5" />
-              <p className="font-sans text-[13px] text-[var(--error)] font-medium mb-2.5">
+            <div className="flex flex-col items-center justify-center h-full p-3">
+              <AlertCircle className="size-5 text-[var(--error)] mb-2" />
+              <p className="font-sans text-xs text-[var(--error)] font-medium mb-2">
                 Generation failed
               </p>
               <button
                 type="button"
                 onClick={onRetry}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-sans border"
-                style={{
-                  color: meta.color,
-                  borderColor: `${meta.color}4D`,
-                }}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-sans border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
               >
-                <RefreshCw className="size-3.5" />
+                <RefreshCw className="size-3" />
                 Retry
               </button>
             </div>
           ) : output && output.length > 0 ? (
             /* Content */
-            <div className="overflow-y-auto max-h-[250px] p-4">
-              <p className="font-sans text-[13px] text-[var(--text)] leading-relaxed whitespace-pre-wrap select-text">
+            <div className="overflow-y-auto max-h-[200px] p-3">
+              <p className="font-sans text-xs text-[var(--text)] leading-relaxed whitespace-pre-wrap select-text">
                 {output}
               </p>
             </div>
           ) : (
             /* Empty */
-            <div className="flex items-center justify-center h-full p-4">
-              <p className="font-sans text-[13px] text-[var(--text-muted)]">
+            <div className="flex items-center justify-center h-full p-3">
+              <p className="font-sans text-[10px] text-[var(--text-muted)]">
                 No output yet
               </p>
             </div>
@@ -210,14 +202,13 @@ function PlatformCard({
 
         {/* Footer: copy button */}
         {output && output.length > 0 && !isLoading && (
-          <div className="border-t border-black/[0.04] dark:border-white/[0.04] px-2.5 py-2 flex justify-end">
+          <div className="border-t border-[var(--border)] px-2 py-1.5 flex justify-end">
             <button
               type="button"
               onClick={() => onCopy(output)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-sans transition-colors hover:opacity-80"
-              style={{ color: meta.color }}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-sans text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
             >
-              <Copy className="size-3.5" />
+              <Copy className="size-3" />
               Copy
             </button>
           </div>

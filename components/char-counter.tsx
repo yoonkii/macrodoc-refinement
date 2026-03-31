@@ -19,7 +19,7 @@ export function CharCounter({ current, max }: CharCounterProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center px-3 py-1 rounded-full font-mono text-xs",
+        "inline-flex items-center px-2 py-0.5 rounded-md font-mono text-[10px]",
         isOver
           ? "bg-[var(--error-dim)] text-[var(--error)] font-bold"
           : "bg-[var(--elevated)] text-[var(--text-muted)]"

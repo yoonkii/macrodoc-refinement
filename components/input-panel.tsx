@@ -50,21 +50,21 @@ export function InputPanel() {
   const isEmpty = charCount === 0;
 
   return (
-    <div className="flex flex-col h-full p-6">
+    <div className="flex flex-col h-full p-4">
       {/* Header */}
-      <div className="flex items-center justify-between pb-4">
-        <h2 className="font-display text-lg font-semibold text-[var(--text)]">
+      <div className="flex items-center justify-between pb-3">
+        <h2 className="text-sm font-medium text-[var(--text)]">
           Input Text
         </h2>
         <CharCounter current={charCount} max={MAX_CHARACTERS} />
       </div>
 
-      {/* Textarea container with amber focus ring */}
+      {/* Textarea container with amber focus border */}
       <div
         className={cn(
-          "flex-1 rounded-2xl border border-[var(--border)] bg-[var(--bg)]",
-          "transition-shadow duration-200",
-          "focus-within:ring-2 focus-within:ring-amber-500/40"
+          "flex-1 rounded-md border border-[var(--border)] bg-[var(--bg)]",
+          "transition-colors duration-150",
+          "focus-within:border-[var(--amber)]"
         )}
       >
         <textarea
@@ -73,16 +73,16 @@ export function InputPanel() {
           onChange={handleChange}
           placeholder="Type or paste your text here..."
           className={cn(
-            "w-full h-full min-h-[200px] resize-none p-4",
+            "w-full h-full min-h-[200px] resize-none p-3",
             "bg-transparent text-[var(--text)] placeholder:text-[var(--text-muted)]",
-            "font-sans text-base leading-relaxed",
-            "outline-none border-none rounded-2xl"
+            "font-sans text-sm leading-relaxed",
+            "outline-none border-none rounded-md"
           )}
         />
       </div>
 
       {/* Legal disclaimer */}
-      <p className="pt-4 pb-4 text-[11px] text-[var(--text-muted)] leading-relaxed">
+      <p className="pt-3 pb-3 text-[10px] text-[var(--text-muted)] leading-relaxed">
         Text is processed by Google&apos;s Gemini AI. By using this service, you
         confirm that you are at least 18 years of age. Users under 18 are not
         permitted to use this service.
@@ -92,20 +92,22 @@ export function InputPanel() {
       <div className="flex items-center justify-between">
         <Button
           variant="outline"
+          size="sm"
           onClick={handleClear}
-          className="min-h-[40px] text-[var(--error)] border-[var(--error)]/30 hover:bg-[var(--error-dim)]"
+          className="h-8 text-xs text-[var(--error)] border-[var(--error)]/30 hover:bg-[var(--error-dim)]"
         >
-          <X className="size-4" data-icon="inline-start" />
+          <X className="size-3.5" data-icon="inline-start" />
           Clear
         </Button>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
+            size="sm"
             onClick={handlePaste}
-            className="min-h-[40px] text-[var(--amber)] border-[var(--amber)]/30 hover:bg-[var(--amber-dim)]"
+            className="h-8 text-xs text-[var(--amber)] border-[var(--amber)]/30 hover:bg-[var(--amber-dim)]"
           >
-            <ClipboardPaste className="size-4" data-icon="inline-start" />
+            <ClipboardPaste className="size-3.5" data-icon="inline-start" />
             Paste
           </Button>
 
@@ -114,14 +116,14 @@ export function InputPanel() {
             onClick={() => store.processNow()}
             disabled={isEmpty}
             className={cn(
-              "inline-flex items-center gap-2 px-6 py-2.5 min-h-[44px] rounded-full",
-              "font-sans text-sm font-medium transition-all",
+              "inline-flex items-center gap-1.5 px-4 py-1.5 h-8 rounded-full",
+              "font-sans text-xs font-medium transition-colors",
               isEmpty
                 ? "bg-[var(--amber)]/10 text-[var(--text-muted)] cursor-not-allowed"
-                : "bg-[var(--amber)] text-[#1A1816] hover:bg-[var(--amber-hover)] hover:scale-[1.03] active:scale-100"
+                : "bg-[var(--amber)] text-[#1A1816] hover:bg-[var(--amber-hover)]"
             )}
           >
-            <RefreshCw className="size-4" />
+            <RefreshCw className="size-3.5" />
             Process Now
           </button>
         </div>

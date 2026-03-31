@@ -56,20 +56,11 @@ export default function Home() {
       />
 
       <main className="flex-1 flex flex-col relative">
-        {/* Ambient glow */}
-        <div
-          className="absolute top-0 left-0 right-0 h-[500px] pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse 80% 60% at top center, rgba(232,168,56,0.10) 0%, transparent 75%)",
-          }}
-        />
-
-        <div className="flex flex-1 p-6 md:p-8 gap-5 md:gap-6 relative z-10">
+        <div className="flex flex-1 p-4 md:p-5 gap-3 md:gap-4">
           {/* Editor area */}
-          <div className="flex-[3] flex flex-col gap-5 md:gap-6 min-w-0">
+          <div className="flex-[3] flex flex-col gap-3 md:gap-4 min-w-0">
             {/* Split pane: side-by-side on desktop, stacked on mobile */}
-            <div className="flex-1 flex md:flex-row flex-col gap-5">
+            <div className="flex-1 flex md:flex-row flex-col gap-3">
               <GlassCard className="flex-1">
                 <InputPanel />
               </GlassCard>
@@ -98,7 +89,7 @@ export default function Home() {
         </div>
 
         {/* Footer */}
-        <footer className="border-t border-[var(--border)] py-4 px-5 text-center">
+        <footer className="border-t border-[var(--border)] py-3 px-4 text-center">
           <Link
             href="/legal"
             className="text-xs text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
@@ -113,13 +104,13 @@ export default function Home() {
         <div className="fixed inset-0 z-50 md:hidden">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/50"
             onClick={() => setShowMobileDrawer(false)}
           />
           {/* Drawer */}
-          <div className="absolute left-0 top-0 bottom-0 w-[300px] bg-[var(--surface)] shadow-2xl">
-            <div className="flex items-center justify-between px-4 pt-4 pb-2">
-              <h2 className="font-display text-lg font-bold text-[var(--amber)]">
+          <div className="absolute left-0 top-0 bottom-0 w-[280px] bg-[var(--surface)] border-r border-[var(--border)]">
+            <div className="flex items-center justify-between px-4 pt-3 pb-2">
+              <h2 className="text-sm font-semibold text-[var(--amber)]">
                 Style Profiles
               </h2>
               <button
