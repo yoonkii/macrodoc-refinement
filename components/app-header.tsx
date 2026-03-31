@@ -63,7 +63,7 @@ export function AppHeader({
             type="button"
             onClick={onToggleStylePanel}
             className={cn(
-              "hidden md:inline-flex items-center justify-center p-1.5 min-w-[32px] min-h-[32px] rounded-md transition-colors",
+              "hidden md:inline-flex items-center justify-center p-1.5 min-w-[44px] min-h-[44px] rounded-md transition-colors",
               showStylePanel
                 ? "text-[var(--amber)]"
                 : "text-[var(--text-muted)] hover:text-[var(--text)]"
@@ -81,7 +81,7 @@ export function AppHeader({
           <button
             type="button"
             onClick={handleThemeToggle}
-            className="p-1.5 min-w-[32px] min-h-[32px] inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+            className="p-1.5 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
             aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           >
             {theme === "dark" ? (
@@ -95,7 +95,7 @@ export function AppHeader({
           <button
             type="button"
             onClick={() => setAboutOpen(true)}
-            className="p-1.5 min-w-[32px] min-h-[32px] inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+            className="p-1.5 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
             aria-label="About"
           >
             <Info className="size-4" />
