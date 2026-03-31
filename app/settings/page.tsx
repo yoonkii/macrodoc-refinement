@@ -143,6 +143,23 @@ export default function SettingsPage() {
 
       {/* Content */}
       <main className="max-w-3xl mx-auto px-5 py-8 space-y-6">
+        {/* Security notice — TOP, prominent */}
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-5 py-4">
+          <div className="flex items-start gap-3">
+            <Shield className="size-5 text-emerald-500 shrink-0 mt-0.5" />
+            <div>
+              <h2 className="text-sm font-semibold text-emerald-400 mb-1">
+                We never store your API keys.
+              </h2>
+              <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                Your API key is saved in your browser&apos;s local storage only and is never transmitted to our servers.
+                When using your own model, all API calls go directly from your browser to the AI provider (OpenAI, Anthropic, Google, or xAI).
+                We have no access to your keys, your prompts, or your usage data.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Current model indicator */}
         <GlassCard>
           <div className="px-5 py-4">
@@ -340,28 +357,6 @@ export default function SettingsPage() {
             Reset to Default (Free Tier)
           </button>
         )}
-
-        {/* Security notice */}
-        <GlassCard>
-          <div className="px-5 py-4 space-y-3">
-            <div className="flex items-center gap-2">
-              <Shield className="size-4 text-emerald-500" />
-              <h2 className="font-mono text-xs uppercase tracking-wider text-emerald-500">
-                Security
-              </h2>
-            </div>
-            <div className="space-y-2 text-sm text-[var(--text)]">
-              <p>
-                Your API key is stored locally in your browser only. It is never
-                sent to our servers.
-              </p>
-              <p>
-                When using BYOM, API calls go directly from your browser to the
-                AI provider.
-              </p>
-            </div>
-          </div>
-        </GlassCard>
 
         {/* Rate limit notice */}
         <GlassCard>
