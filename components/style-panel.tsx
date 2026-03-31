@@ -29,11 +29,7 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
   const toneStore = useToneStore();
   const profiles = store.profiles;
 
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [editingProfile, setEditingProfile] = useState<StyleProfile | null>(
-    null
-  );
   const [deletingProfile, setDeletingProfile] = useState<StyleProfile | null>(
     null
   );
@@ -106,8 +102,8 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
   }, [isProofreadActive, proofreadProfile, personalityProfiles, store]);
 
   function handleEdit(profile: StyleProfile) {
-    setEditingProfile(profile);
-    setEditDialogOpen(true);
+    // Navigate to the playground with the profile ID for full-page editing
+    router.push(`/playground?edit=${profile.id}`);
   }
 
   function handleDeleteRequest(profile: StyleProfile) {
@@ -121,23 +117,6 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
     }
     setDeleteDialogOpen(false);
     setDeletingProfile(null);
-  }
-
-  function handleSave(
-    name: string,
-    instructions: string,
-    fewShots: string[]
-  ) {
-    if (editingProfile) {
-      store.updateProfile({
-        ...editingProfile,
-        name,
-        instructions,
-        fewShots,
-      });
-    }
-    setEditDialogOpen(false);
-    setEditingProfile(null);
   }
 
   const content = (
@@ -209,19 +188,6 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
           Add New Style
         </button>
       </div>
-
-      {/* Edit dialog (for editing existing profiles in-place) */}
-      {editingProfile && (
-        <ProfileFormDialog
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          title="Edit Style"
-          initialName={editingProfile.name}
-          initialInstructions={editingProfile.instructions}
-          initialFewShots={editingProfile.fewShots}
-          onSave={handleSave}
-        />
-      )}
 
       {/* Delete confirmation dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -370,160 +336,3 @@ function ProfileTile({ profile, onToggle, onEdit, onDelete }: ProfileTileProps) 
   );
 }
 
-// ---------- Form Dialog (Edit only) ----------
-
-interface ProfileFormDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  title: string;
-  initialName: string;
-  initialInstructions: string;
-  initialFewShots: string[];
-  onSave: (name: string, instructions: string, fewShots: string[]) => void;
-}
-
-function ProfileFormDialog({
-  open,
-  onOpenChange,
-  title,
-  initialName,
-  initialInstructions,
-  initialFewShots,
-  onSave,
-}: ProfileFormDialogProps) {
-  const [name, setName] = useState(initialName);
-  const [instructions, setInstructions] = useState(initialInstructions);
-  const [fewShots, setFewShots] = useState<string[]>(
-    initialFewShots.length > 0 ? [...initialFewShots] : [""]
-  );
-
-  // Reset form when dialog opens
-  function handleOpenChange(nextOpen: boolean) {
-    if (nextOpen) {
-      setName(initialName);
-      setInstructions(initialInstructions);
-      setFewShots(
-        initialFewShots.length > 0 ? [...initialFewShots] : [""]
-      );
-    }
-    onOpenChange(nextOpen);
-  }
-
-  function handleSubmit() {
-    const trimmedName = name.trim();
-    if (!trimmedName) return;
-
-    const validFewShots = fewShots
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
-
-    onSave(trimmedName, instructions.trim(), validFewShots);
-  }
-
-  function addFewShot() {
-    setFewShots((prev) => [...prev, ""]);
-  }
-
-  function removeFewShot(index: number) {
-    setFewShots((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function updateFewShot(index: number, value: string) {
-    setFewShots((prev) => prev.map((s, i) => (i === index ? value : s)));
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="font-display font-bold">{title}</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium text-[var(--text)] mb-1">
-              Style Name
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., Professional, Casual, Academic"
-              className="w-full rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--amber)]"
-            />
-          </div>
-
-          {/* Instructions */}
-          <div>
-            <label className="block text-sm font-medium text-[var(--text)] mb-1">
-              Style Instructions
-            </label>
-            <textarea
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-              placeholder="Describe how text should be refined"
-              rows={3}
-              className="w-full rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none resize-none focus:border-[var(--amber)]"
-            />
-          </div>
-
-          {/* Few-shots */}
-          <div>
-            <p className="text-sm font-medium text-[var(--text)] mb-2">
-              Few-Shot Examples (Optional)
-            </p>
-            {fewShots.map((shot, index) => (
-              <div key={index} className="flex gap-2 mb-2">
-                <textarea
-                  value={shot}
-                  onChange={(e) => updateFewShot(index, e.target.value)}
-                  placeholder='Example: Instead of X, write Y'
-                  rows={2}
-                  className="flex-1 rounded-md border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none resize-none focus:border-[var(--amber)]"
-                />
-                {index > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => removeFewShot(index)}
-                    className="self-start p-1.5 text-[var(--error)] hover:bg-[var(--error-dim)] rounded-md transition-colors"
-                    aria-label="Remove example"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={addFewShot}
-              className="inline-flex items-center gap-1 text-sm text-[var(--amber)] hover:text-[var(--amber-hover)] transition-colors"
-            >
-              <Plus className="size-4" />
-              Add Example
-            </button>
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!name.trim()}
-            className={cn(
-              "inline-flex items-center px-4 py-1.5 rounded-md text-xs font-medium transition-colors",
-              name.trim()
-                ? "bg-[var(--amber)] text-[#1A1816] hover:bg-[var(--amber-hover)]"
-                : "bg-[var(--elevated)] text-[var(--text-muted)] cursor-not-allowed"
-            )}
-          >
-            Save
-          </button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
