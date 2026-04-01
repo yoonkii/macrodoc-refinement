@@ -37,6 +37,7 @@ export type TextRefineStore = TextRefineState & TextRefineActions;
 // Internal mutable state not exposed in the Zustand store shape.
 // Kept outside the store to avoid triggering re-renders on timer/controller changes.
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+let syncTimer: ReturnType<typeof setTimeout> | null = null;
 let abortController: AbortController | null = null;
 
 function cancelActiveStream(): void {
@@ -125,6 +126,24 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
     }
   }
 
+  /**
+   * Debounced process trigger — coalesces rapid profile + tone changes
+   * (e.g. toggling MDR cascades: profile toggle → proofread auto-toggle → tone sync)
+   * into a single processText() call.
+   */
+  function scheduleProcess(): void {
+    if (syncTimer) clearTimeout(syncTimer);
+    syncTimer = setTimeout(() => {
+      syncTimer = null;
+      const { inputText } = get();
+      if (inputText.length > 0) {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = null;
+        processText(inputText);
+      }
+    }, 80);
+  }
+
   return {
     // ── State ──
     inputText: '',
@@ -189,13 +208,7 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
 
       if (currentKey !== newKey) {
         set({ activeProfiles: [...profiles] });
-        const { inputText } = get();
-        if (inputText.length > 0) {
-          // Cancel any pending debounce and process immediately
-          if (debounceTimer) clearTimeout(debounceTimer);
-          debounceTimer = null;
-          processText(inputText);
-        }
+        scheduleProcess();
       }
     },
 
@@ -203,13 +216,7 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
       const { toneValue } = get();
       if (toneValue !== value) {
         set({ toneValue: value });
-        const { inputText } = get();
-        if (inputText.length > 0) {
-          // Cancel any pending debounce and process immediately
-          if (debounceTimer) clearTimeout(debounceTimer);
-          debounceTimer = null;
-          processText(inputText);
-        }
+        scheduleProcess();
       }
     },
   };

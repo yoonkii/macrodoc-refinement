@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Monitor, Info, PanelRightOpen, PanelRightClose, Menu, FlaskConical, Settings } from "lucide-react";
+import { Sun, Moon, Monitor, Info, PanelRightOpen, PanelRightClose, Menu, FlaskConical, Settings, Puzzle } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -152,6 +152,26 @@ export function AppHeader({
                 }
               />
               <TooltipContent side="bottom">Settings</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Puzzle Extension link */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <a
+                    href="https://github.com/yoonkii/macrodoc-refinement/tree/main/mdr-extension"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hidden md:inline-flex items-center justify-center p-1.5 min-w-[44px] min-h-[44px] rounded-md text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+                    aria-label="Puzzle Extension"
+                  >
+                    <Puzzle className="size-4" />
+                  </a>
+                }
+              />
+              <TooltipContent side="bottom">Get Puzzle Extension</TooltipContent>
             </Tooltip>
           </TooltipProvider>
 

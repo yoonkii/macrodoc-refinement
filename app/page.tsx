@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { X } from "lucide-react";
+import { X, FlaskConical, Settings } from "lucide-react";
 import { useTextRefineStore } from "@/lib/stores/text-refine";
 import { useToneStore } from "@/lib/stores/tone";
 import {
@@ -100,7 +100,7 @@ export default function Home() {
             onClick={() => setShowMobileDrawer(false)}
           />
           {/* Drawer */}
-          <div className="absolute left-0 top-0 bottom-0 w-[280px] bg-[var(--surface)] border-r border-[var(--border)]">
+          <div className="absolute left-0 top-0 bottom-0 w-[280px] bg-[var(--surface)] border-r border-[var(--border)] flex flex-col">
             <div className="flex items-center justify-between px-4 pt-3 pb-2">
               <h2 className="text-sm font-semibold text-[var(--amber)]">
                 Style Profiles
@@ -114,7 +114,29 @@ export default function Home() {
                 <X className="size-5" />
               </button>
             </div>
-            <StylePanel isInDrawer />
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              <StylePanel isInDrawer />
+            </div>
+
+            {/* Navigation links (hidden on desktop header) */}
+            <nav className="mt-auto border-t border-[var(--border)] px-4 py-3 flex flex-col gap-1">
+              <Link
+                href="/playground"
+                onClick={() => setShowMobileDrawer(false)}
+                className="flex items-center gap-2 px-2 py-2 rounded-md text-sm text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+              >
+                <FlaskConical className="size-4" />
+                Style Playground
+              </Link>
+              <Link
+                href="/settings"
+                onClick={() => setShowMobileDrawer(false)}
+                className="flex items-center gap-2 px-2 py-2 rounded-md text-sm text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+              >
+                <Settings className="size-4" />
+                Settings
+              </Link>
+            </nav>
           </div>
         </div>
       )}

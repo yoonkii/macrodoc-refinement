@@ -79,7 +79,9 @@ export function buildRefinementPrompt(params: RefinementPromptParams): string {
 - Respond in the SAME LANGUAGE as the input
 - Maintain the original meaning — do not add new information
 - Return ONLY the refined text — no explanations, no commentary
-- Do not comment on or critique the input text`);
+- Do not comment on or critique the input text
+- Blend ALL active styles into ONE single unified text — never produce separate versions or paragraphs per style
+- When multiple styles are active, fuse their qualities naturally into one cohesive voice`);
 
   // 2. Learned voice characteristics (lowest priority layer)
   if (voiceCharacteristics) {
