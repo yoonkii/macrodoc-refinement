@@ -80,7 +80,7 @@ export function AppHeader({
           <button
             type="button"
             onClick={onToggleMobileDrawer}
-            className="md:hidden p-2 -ml-2 min-w-[36px] min-h-[36px] inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+            className="lg:hidden p-2 -ml-2 min-w-[36px] min-h-[36px] inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
             aria-label="Open menu"
           >
             <Menu className="size-4" />
@@ -105,7 +105,7 @@ export function AppHeader({
             type="button"
             onClick={onToggleStylePanel}
             className={cn(
-              "hidden md:inline-flex items-center justify-center p-1.5 min-w-[44px] min-h-[44px] rounded-md transition-colors",
+              "hidden lg:inline-flex items-center justify-center p-1.5 min-w-[44px] min-h-[44px] rounded-md transition-colors",
               showStylePanel
                 ? "text-[var(--amber)]"
                 : "text-[var(--text-muted)] hover:text-[var(--text)]"

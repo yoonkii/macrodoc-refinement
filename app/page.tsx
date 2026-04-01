@@ -67,7 +67,7 @@ export default function Home() {
 
           {/* Style panel sidebar (desktop only) */}
           {showStylePanel && (
-            <div className="hidden md:block w-[280px] shrink-0 min-h-0">
+            <div className="hidden lg:block w-[280px] shrink-0 min-h-0">
               <GlassCard className="h-full" innerClassName="flex flex-col">
                 <StylePanel />
               </GlassCard>
@@ -93,7 +93,7 @@ export default function Home() {
 
       {/* Mobile drawer overlay */}
       {showMobileDrawer && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50"
