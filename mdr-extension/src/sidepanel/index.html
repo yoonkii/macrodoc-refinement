@@ -4,6 +4,52 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MDR Side Panel</title>
+    <style>
+      :root {
+        --mdr-bg: #FAF9F7;
+        --mdr-surface: #FFFFFF;
+        --mdr-text: #1A1816;
+        --mdr-muted: #6B665E;
+        --mdr-border: #E0DCD6;
+        --mdr-amber: #E8A838;
+        --mdr-amber-hover: #D4962E;
+        --mdr-amber-text: #1A1816;
+        --mdr-surface-hover: #F5F3F0;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --mdr-bg: #050505;
+          --mdr-surface: #141414;
+          --mdr-text: #EDEDED;
+          --mdr-muted: #888888;
+          --mdr-border: #262626;
+          --mdr-amber: #E8A838;
+          --mdr-amber-hover: #D4962E;
+          --mdr-amber-text: #1A1816;
+          --mdr-surface-hover: #1C1C1C;
+        }
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--mdr-bg);
+        color: var(--mdr-text);
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 13px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      @keyframes mdr-blink {
+        50% { opacity: 0; }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

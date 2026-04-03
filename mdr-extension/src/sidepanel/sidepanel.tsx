@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { PlatformKey } from '../shared/types';
-import type { StyleProfile } from '../shared/types';
+import type { PlatformKey, StyleProfile } from '../shared/types';
 import { PLATFORM_META } from '../shared/constants';
 import { getStyleProfiles, toggleProfile } from '../storage/style-profiles';
-import { getSettings, setSettings } from '../storage/settings';
 import { getModelConfig } from '../storage/model-config';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -16,180 +14,251 @@ interface StreamMessage {
   error?: string;
 }
 
-// ── Styles ─────────────────────────────────────────────────────────────────
+// ── Style chip ordering by formality ───────────────────────────────────────
 
-const COLORS = {
-  bg: '#050505',
-  surface: '#0D1117',
-  surfaceHover: '#161B22',
-  border: '#21262D',
-  amber: '#E8A838',
-  amberDim: '#C8892A',
-  textPrimary: '#E6EDF3',
-  textSecondary: '#8B949E',
-  textMuted: '#484F58',
-} as const;
+const STYLE_ORDER: string[] = [
+  'MDR Style',
+  'Academic',
+  'Professional',
+  'Warner',
+  'Casual & Friendly',
+  'Gen Z Style',
+  'Proofread Only',
+];
 
-const styles = {
+// ── Platform tabs with char limits ─────────────────────────────────────────
+
+const TABS: Array<{ key: TabKey; label: string; charLimit?: number }> = [
+  { key: 'refined', label: 'Refined' },
+  { key: 'linkedin', label: 'LinkedIn', charLimit: 1300 },
+  { key: 'x', label: 'X', charLimit: 280 },
+  { key: 'instagram', label: 'Instagram', charLimit: 2200 },
+];
+
+// ── CSS helper: all colors via CSS variables ───────────────────────────────
+
+function cssVar(name: string): string {
+  return `var(--mdr-${name})`;
+}
+
+// ── Inline styles using CSS variables ──────────────────────────────────────
+
+const S = {
   container: {
-    background: COLORS.bg,
-    color: COLORS.textPrimary,
-    fontFamily: 'system-ui, -apple-system, sans-serif',
     height: '100vh',
     display: 'flex',
     flexDirection: 'column' as const,
     overflow: 'hidden',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    background: cssVar('bg'),
+    color: cssVar('text'),
   },
+
+  // Header
   header: {
-    padding: '16px',
-    borderBottom: `1px solid ${COLORS.border}`,
+    padding: '12px',
+    borderBottom: `1px solid ${cssVar('border')}`,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
+    flexShrink: 0,
   },
   headerTitle: {
-    fontSize: '14px',
+    fontSize: '13px',
     fontWeight: 700,
-    color: COLORS.amber,
-    letterSpacing: '-0.02em',
+    color: cssVar('text'),
+    letterSpacing: '-0.01em',
   },
   headerModel: {
-    fontSize: '11px',
-    color: COLORS.textMuted,
+    fontSize: '10px',
+    color: cssVar('muted'),
+    letterSpacing: '0.02em',
   },
+
+  // Section labels
+  sectionLabel: {
+    fontSize: '10px',
+    fontWeight: 600,
+    color: cssVar('muted'),
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.08em',
+    marginBottom: '6px',
+  },
+
+  // Body scroll area
   body: {
     flex: 1,
     overflowY: 'auto' as const,
     padding: '12px',
     display: 'flex',
     flexDirection: 'column' as const,
-    gap: '12px',
+    gap: '8px',
   },
-  sectionLabel: {
-    fontSize: '11px',
-    fontWeight: 600,
-    color: COLORS.textSecondary,
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.05em',
-    marginBottom: '6px',
-  },
+
+  // Textarea
   textarea: {
     width: '100%',
-    minHeight: '100px',
-    background: COLORS.surface,
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: '8px',
-    color: COLORS.textPrimary,
+    minHeight: '120px',
+    background: cssVar('surface'),
+    border: `1px solid ${cssVar('border')}`,
+    borderRadius: '6px',
+    color: cssVar('text'),
     fontFamily: 'inherit',
     fontSize: '13px',
+    lineHeight: '1.5',
     padding: '10px',
     resize: 'vertical' as const,
     outline: 'none',
     boxSizing: 'border-box' as const,
   },
-  buttonRow: {
-    display: 'flex',
-    gap: '8px',
-  },
-  primaryButton: {
-    flex: 1,
+
+  // Refine button (full-width amber)
+  refineButton: {
+    width: '100%',
     padding: '10px',
-    borderRadius: '8px',
-    background: COLORS.amber,
-    color: '#1A1816',
+    borderRadius: '6px',
+    background: cssVar('amber'),
+    color: cssVar('amber-text'),
     fontWeight: 600,
     fontSize: '13px',
     border: 'none',
     cursor: 'pointer',
     transition: 'opacity 0.15s',
+    marginTop: '8px',
   },
-  secondaryButton: {
-    padding: '10px 14px',
-    borderRadius: '8px',
-    background: COLORS.surface,
-    color: COLORS.textPrimary,
-    fontWeight: 500,
-    fontSize: '13px',
-    border: `1px solid ${COLORS.border}`,
+
+  // "Grab from page" text link
+  grabLink: {
+    background: 'none',
+    border: 'none',
+    color: cssVar('muted'),
+    fontSize: '11px',
     cursor: 'pointer',
-    transition: 'background 0.15s',
+    padding: '4px 0',
+    marginTop: '4px',
+    textAlign: 'center' as const,
+    width: '100%',
+    transition: 'color 0.15s',
   },
+
+  // Style chips container
+  chipRow: {
+    display: 'flex',
+    flexWrap: 'wrap' as const,
+    gap: '4px',
+  },
+
+  // Tab row (horizontal scrollable)
   tabRow: {
     display: 'flex',
     gap: '2px',
     overflowX: 'auto' as const,
-    paddingBottom: '4px',
+    flexShrink: 0,
+    paddingBottom: '1px',
   },
-  tab: (isActive: boolean) => ({
-    padding: '6px 10px',
-    borderRadius: '6px',
-    background: isActive ? COLORS.amber : 'transparent',
-    color: isActive ? '#1A1816' : COLORS.textSecondary,
-    fontWeight: isActive ? 600 : 400,
-    fontSize: '12px',
-    border: 'none',
-    cursor: 'pointer',
-    whiteSpace: 'nowrap' as const,
-    transition: 'all 0.15s',
-  }),
+
+  // Output container (takes remaining space)
+  outputSection: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    minHeight: 0,
+  },
   outputArea: {
-    minHeight: '120px',
+    flex: 1,
     padding: '10px',
-    background: COLORS.surface,
-    borderRadius: '8px',
-    border: `1px solid ${COLORS.border}`,
+    background: cssVar('surface'),
+    borderRadius: '6px',
+    border: `1px solid ${cssVar('border')}`,
     fontSize: '13px',
     lineHeight: '1.6',
-    color: COLORS.textPrimary,
+    color: cssVar('text'),
     whiteSpace: 'pre-wrap' as const,
     wordBreak: 'break-word' as const,
     overflowY: 'auto' as const,
-    maxHeight: '300px',
+    marginTop: '6px',
+    minHeight: '120px',
   },
-  profileChip: (isActive: boolean) => ({
-    padding: '4px 10px',
-    borderRadius: '999px',
-    background: isActive ? COLORS.amber : COLORS.surface,
-    color: isActive ? '#1A1816' : COLORS.textSecondary,
-    fontSize: '11px',
-    fontWeight: isActive ? 600 : 400,
-    border: `1px solid ${isActive ? COLORS.amber : COLORS.border}`,
-    cursor: 'pointer',
-    transition: 'all 0.15s',
-    whiteSpace: 'nowrap' as const,
-  }),
-  profileRow: {
-    display: 'flex',
-    flexWrap: 'wrap' as const,
-    gap: '6px',
-  },
-  toneSlider: {
-    width: '100%',
-    accentColor: COLORS.amber,
-    cursor: 'pointer',
-  },
-  toneLabel: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    fontSize: '11px',
-    color: COLORS.textMuted,
-  },
+
+  // Blinking cursor for streaming
   cursor: {
     display: 'inline-block',
     width: '2px',
     height: '14px',
-    background: COLORS.amber,
+    background: cssVar('amber'),
     marginLeft: '1px',
     animation: 'mdr-blink 0.8s step-end infinite',
     verticalAlign: 'text-bottom',
   },
+
+  // Sticky bottom bar
   footer: {
     padding: '12px',
-    borderTop: `1px solid ${COLORS.border}`,
+    borderTop: `1px solid ${cssVar('border')}`,
     display: 'flex',
     gap: '8px',
+    flexShrink: 0,
+    background: cssVar('bg'),
+  },
+  footerSecondary: {
+    flex: 1,
+    padding: '9px',
+    borderRadius: '6px',
+    background: cssVar('surface'),
+    color: cssVar('text'),
+    fontWeight: 500,
+    fontSize: '12px',
+    border: `1px solid ${cssVar('border')}`,
+    cursor: 'pointer',
+    transition: 'background 0.15s',
+  },
+  footerPrimary: {
+    flex: 1,
+    padding: '9px',
+    borderRadius: '6px',
+    background: cssVar('amber'),
+    color: cssVar('amber-text'),
+    fontWeight: 600,
+    fontSize: '12px',
+    border: 'none',
+    cursor: 'pointer',
+    transition: 'opacity 0.15s',
   },
 } as const;
+
+// Dynamic style helpers (depend on state)
+function chipStyle(isActive: boolean): React.CSSProperties {
+  return {
+    padding: '4px 10px',
+    borderRadius: '999px',
+    background: isActive ? cssVar('amber') : 'transparent',
+    color: isActive ? cssVar('amber-text') : cssVar('muted'),
+    fontSize: '12px',
+    fontWeight: isActive ? 600 : 400,
+    border: `1px solid ${isActive ? cssVar('amber') : cssVar('border')}`,
+    cursor: 'pointer',
+    transition: 'all 0.15s',
+    whiteSpace: 'nowrap' as const,
+  };
+}
+
+function tabStyle(isActive: boolean): React.CSSProperties {
+  return {
+    padding: '5px 8px',
+    background: 'transparent',
+    color: isActive ? cssVar('amber') : cssVar('muted'),
+    fontWeight: isActive ? 600 : 400,
+    fontSize: '12px',
+    border: 'none',
+    borderBottom: isActive ? `2px solid ${cssVar('amber')}` : '2px solid transparent',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
+    transition: 'all 0.15s',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  };
+}
 
 // ── Component ──────────────────────────────────────────────────────────────
 
@@ -205,70 +274,94 @@ export function SidePanel() {
   const [activeTab, setActiveTab] = useState<TabKey>('refined');
   const [isStreaming, setIsStreaming] = useState(false);
   const [profiles, setProfiles] = useState<StyleProfile[]>([]);
-  const [toneValue, setToneValue] = useState(0);
   const [modelLabel, setModelLabel] = useState('Default');
+  const [copyFeedback, setCopyFeedback] = useState(false);
   const portRef = useRef<chrome.runtime.Port | null>(null);
+  const outputRef = useRef<HTMLDivElement>(null);
 
   // Load initial data from storage
   useEffect(() => {
     getStyleProfiles().then(setProfiles);
-    getSettings().then((s) => setToneValue(s.toneValue));
     getModelConfig().then((c) => {
-      setModelLabel(c.provider === 'default' ? 'Default (Free)' : `${c.provider}: ${c.model}`);
+      setModelLabel(c.provider === 'default' ? 'Default' : `${c.provider}/${c.model}`);
     });
   }, []);
 
+  // Auto-scroll output during streaming
+  useEffect(() => {
+    if (isStreaming && outputRef.current) {
+      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    }
+  }, [outputs, isStreaming]);
+
   // ── Refinement stream ──────────────────────────────────────────────────
 
-  const startRefinement = useCallback(() => {
-    if (!inputText.trim() || isStreaming) return;
+  const startRefinement = useCallback(
+    (targetTab?: TabKey) => {
+      const tab = targetTab ?? activeTab;
+      if (!inputText.trim() || isStreaming) return;
 
-    setIsStreaming(true);
-    setOutputs((prev) => ({ ...prev, [activeTab]: '' }));
+      setIsStreaming(true);
+      setOutputs((prev) => ({ ...prev, [tab]: '' }));
 
-    // Disconnect any previous port
-    portRef.current?.disconnect();
+      // Disconnect any previous port
+      portRef.current?.disconnect();
 
-    const port = chrome.runtime.connect({ name: 'refine-stream' });
-    portRef.current = port;
+      const port = chrome.runtime.connect({ name: 'refine-stream' });
+      portRef.current = port;
 
-    let accumulated = '';
+      let accumulated = '';
 
-    port.onMessage.addListener((msg: StreamMessage) => {
-      if (msg.type === 'CHUNK' && msg.text) {
-        accumulated += msg.text;
-        setOutputs((prev) => ({ ...prev, [activeTab]: accumulated }));
+      port.onMessage.addListener((msg: StreamMessage) => {
+        if (msg.type === 'CHUNK' && msg.text) {
+          accumulated += msg.text;
+          setOutputs((prev) => ({ ...prev, [tab]: accumulated }));
+        }
+        if (msg.type === 'DONE') {
+          setIsStreaming(false);
+          port.disconnect();
+          portRef.current = null;
+        }
+        if (msg.type === 'ERROR') {
+          setOutputs((prev) => ({
+            ...prev,
+            [tab]: `Error: ${msg.error ?? 'Unknown error'}`,
+          }));
+          setIsStreaming(false);
+          port.disconnect();
+          portRef.current = null;
+        }
+      });
+
+      // Resolve platform preset name from tab key
+      const platformMap: Record<string, string> = {
+        linkedin: 'LinkedIn Professional',
+        x: 'X (Twitter) Style',
+        instagram: 'Instagram',
+      };
+      const platformPresetName = platformMap[tab] ?? undefined;
+
+      port.postMessage({
+        text: inputText,
+        toneValue: 0,
+        platformPresetName,
+      });
+    },
+    [inputText, isStreaming, activeTab],
+  );
+
+  // ── Tab switch: auto-generate if output empty ──────────────────────────
+
+  const handleTabSwitch = useCallback(
+    (tabKey: TabKey) => {
+      setActiveTab(tabKey);
+      // Auto-generate if tab has no output and there is input text
+      if (!outputs[tabKey] && inputText.trim() && !isStreaming) {
+        startRefinement(tabKey);
       }
-      if (msg.type === 'DONE') {
-        setIsStreaming(false);
-        port.disconnect();
-        portRef.current = null;
-      }
-      if (msg.type === 'ERROR') {
-        setOutputs((prev) => ({
-          ...prev,
-          [activeTab]: `Error: ${msg.error ?? 'Unknown error'}`,
-        }));
-        setIsStreaming(false);
-        port.disconnect();
-        portRef.current = null;
-      }
-    });
-
-    // Resolve platform preset name from active tab
-    const platformMap: Record<string, string> = {
-      linkedin: 'LinkedIn Professional',
-      x: 'X (Twitter) Style',
-      instagram: 'Instagram',
-    };
-    const platformPresetName = platformMap[activeTab] ?? undefined;
-
-    port.postMessage({
-      text: inputText,
-      toneValue,
-      platformPresetName,
-    });
-  }, [inputText, isStreaming, activeTab, toneValue]);
+    },
+    [outputs, inputText, isStreaming, startRefinement],
+  );
 
   // ── Grab text from page ────────────────────────────────────────────────
 
@@ -295,13 +388,16 @@ export function SidePanel() {
     chrome.tabs.sendMessage(tab.id, { type: 'INSERT_TEXT', text });
   }, [outputs, activeTab]);
 
-  // ── Copy to clipboard ─────────────────────────────────────────────────
+  // ── Copy to clipboard with feedback ───────────────────────────────────
 
   const copyOutput = useCallback(() => {
     const text = outputs[activeTab];
-    if (text) {
-      navigator.clipboard.writeText(text);
-    }
+    if (!text) return;
+
+    navigator.clipboard.writeText(text).then(() => {
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 1500);
+    });
   }, [outputs, activeTab]);
 
   // ── Toggle profile ────────────────────────────────────────────────────
@@ -311,105 +407,65 @@ export function SidePanel() {
     setProfiles(updated);
   }, []);
 
-  // ── Tone change ───────────────────────────────────────────────────────
+  // ── Derive ordered style chips ────────────────────────────────────────
 
-  const handleToneChange = useCallback((value: number) => {
-    setToneValue(value);
-    setSettings({ toneValue: value });
-  }, []);
+  const styleProfiles = profiles
+    .filter((p) => p.type === 'personality' || p.type === 'custom')
+    .sort((a, b) => {
+      const aIdx = STYLE_ORDER.indexOf(a.name);
+      const bIdx = STYLE_ORDER.indexOf(b.name);
+      // Unknown profiles go to end
+      const aPos = aIdx === -1 ? STYLE_ORDER.length : aIdx;
+      const bPos = bIdx === -1 ? STYLE_ORDER.length : bIdx;
+      return aPos - bPos;
+    });
 
-  // ── Tabs ──────────────────────────────────────────────────────────────
-
-  const tabs: Array<{ key: TabKey; label: string }> = [
-    { key: 'refined', label: 'Refined' },
-    { key: 'linkedin', label: 'LinkedIn' },
-    { key: 'x', label: 'X' },
-    { key: 'instagram', label: 'Instagram' },
-    { key: 'substack', label: 'Substack' },
-  ];
-
-  const toneLabels: Record<number, string> = {
-    [-1]: 'Board Memo',
-    [-0.5]: 'Professional',
-    [0]: 'Balanced',
-    [0.5]: 'Conversational',
-    [1]: 'Texting a Friend',
-  };
-
-  const closestTone = [-1, -0.5, 0, 0.5, 1].reduce((prev, curr) =>
-    Math.abs(curr - toneValue) < Math.abs(prev - toneValue) ? curr : prev,
-  );
-
-  // Personality profiles for the style selector
-  const personalityProfiles = profiles.filter(
-    (p) => p.type === 'personality' || p.type === 'custom',
-  );
+  const hasOutput = Boolean(outputs[activeTab]);
+  const canRefine = Boolean(inputText.trim()) && !isStreaming;
 
   return (
-    <div style={styles.container}>
-      {/* Blink animation */}
-      <style>{`@keyframes mdr-blink { 50% { opacity: 0; } }`}</style>
-
+    <div style={S.container}>
       {/* Header */}
-      <div style={styles.header}>
-        <span style={styles.headerTitle}>Macro Doc Refinement</span>
-        <span style={styles.headerModel}>{modelLabel}</span>
+      <div style={S.header}>
+        <span style={S.headerTitle}>Macro Doc Refinement.</span>
+        <span style={S.headerModel}>{modelLabel}</span>
       </div>
 
       {/* Scrollable body */}
-      <div style={styles.body}>
-        {/* Input */}
+      <div style={S.body}>
+        {/* INPUT section */}
         <div>
-          <div style={styles.sectionLabel}>Input</div>
+          <div style={S.sectionLabel}>Input</div>
           <textarea
-            style={styles.textarea}
-            placeholder="Paste or type text to refine..."
+            style={S.textarea}
+            placeholder="Type or paste text..."
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
           />
-          <div style={{ ...styles.buttonRow, marginTop: '8px' }}>
-            <button
-              style={styles.primaryButton}
-              onClick={startRefinement}
-              disabled={isStreaming || !inputText.trim()}
-            >
-              {isStreaming ? 'Refining...' : 'Refine'}
-            </button>
-            <button style={styles.secondaryButton} onClick={grabFromPage}>
-              Grab from page
-            </button>
-          </div>
+          <button
+            style={{
+              ...S.refineButton,
+              opacity: canRefine ? 1 : 0.5,
+              cursor: canRefine ? 'pointer' : 'not-allowed',
+            }}
+            onClick={() => startRefinement()}
+            disabled={!canRefine}
+          >
+            {isStreaming ? 'Refining...' : 'Refine'}
+          </button>
+          <button style={S.grabLink} onClick={grabFromPage}>
+            Grab from page
+          </button>
         </div>
 
-        {/* Tone slider */}
+        {/* STYLE section */}
         <div>
-          <div style={styles.sectionLabel}>Tone</div>
-          <input
-            type="range"
-            min={-1}
-            max={1}
-            step={0.5}
-            value={toneValue}
-            onChange={(e) => handleToneChange(parseFloat(e.target.value))}
-            style={styles.toneSlider}
-          />
-          <div style={styles.toneLabel}>
-            <span>Formal</span>
-            <span style={{ color: COLORS.amber, fontWeight: 600 }}>
-              {toneLabels[closestTone] ?? 'Balanced'}
-            </span>
-            <span>Casual</span>
-          </div>
-        </div>
-
-        {/* Style profiles */}
-        <div>
-          <div style={styles.sectionLabel}>Style</div>
-          <div style={styles.profileRow}>
-            {personalityProfiles.map((profile) => (
+          <div style={S.sectionLabel}>Style</div>
+          <div style={S.chipRow}>
+            {styleProfiles.map((profile) => (
               <button
                 key={profile.id}
-                style={styles.profileChip(profile.isActive)}
+                style={chipStyle(profile.isActive)}
                 onClick={() => handleToggleProfile(profile.id)}
               >
                 {profile.name}
@@ -418,57 +474,65 @@ export function SidePanel() {
           </div>
         </div>
 
-        {/* Output tabs */}
-        <div>
-          <div style={styles.sectionLabel}>Output</div>
-          <div style={styles.tabRow}>
-            {tabs.map((tab) => (
+        {/* OUTPUT section */}
+        <div style={S.outputSection}>
+          <div style={S.sectionLabel}>Output</div>
+          <div style={S.tabRow}>
+            {TABS.map((tab) => (
               <button
                 key={tab.key}
-                style={styles.tab(activeTab === tab.key)}
-                onClick={() => setActiveTab(tab.key)}
+                style={tabStyle(activeTab === tab.key)}
+                onClick={() => handleTabSwitch(tab.key)}
               >
                 {tab.label}
-                {tab.key !== 'refined' && (
+                {tab.charLimit != null && (
                   <span
                     style={{
-                      marginLeft: '4px',
-                      fontSize: '10px',
+                      fontSize: '9px',
                       opacity: 0.6,
+                      fontWeight: 400,
+                      marginLeft: '2px',
                     }}
                   >
-                    {PLATFORM_META[tab.key as PlatformKey]?.charLimit}
+                    {tab.charLimit}
                   </span>
                 )}
               </button>
             ))}
           </div>
 
-          {/* Output display */}
-          <div style={{ ...styles.outputArea, marginTop: '8px' }}>
+          <div ref={outputRef} style={S.outputArea}>
             {outputs[activeTab] || (
-              <span style={{ color: COLORS.textMuted }}>
+              <span style={{ color: cssVar('muted'), fontSize: '12px' }}>
                 Refined text will appear here...
               </span>
             )}
-            {isStreaming && <span style={styles.cursor} />}
+            {isStreaming && <span style={S.cursor} />}
           </div>
         </div>
       </div>
 
-      {/* Footer actions */}
-      <div style={styles.footer}>
+      {/* Sticky bottom bar */}
+      <div style={S.footer}>
         <button
-          style={{ ...styles.secondaryButton, flex: 1 }}
+          style={{
+            ...S.footerSecondary,
+            opacity: hasOutput ? 1 : 0.4,
+            cursor: hasOutput ? 'pointer' : 'not-allowed',
+          }}
           onClick={copyOutput}
-          disabled={!outputs[activeTab]}
+          disabled={!hasOutput}
         >
-          Copy
+          {copyFeedback ? 'Copied' : 'Copy'}
         </button>
         <button
-          style={{ ...styles.primaryButton, flex: 1 }}
+          style={{
+            ...S.footerPrimary,
+            opacity: hasOutput ? 1 : 0.4,
+            cursor: hasOutput ? 'pointer' : 'not-allowed',
+          }}
           onClick={insertIntoPage}
-          disabled={!outputs[activeTab]}
+          disabled={!hasOutput}
         >
           Insert into page
         </button>
