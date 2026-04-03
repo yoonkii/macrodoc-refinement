@@ -21,9 +21,10 @@ const PROOFREAD_ONLY_NAME = "Proofread Only";
 
 interface StylePanelProps {
   isInDrawer?: boolean;
+  onNavigate?: () => void;
 }
 
-export function StylePanel({ isInDrawer = false }: StylePanelProps) {
+export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) {
   const router = useRouter();
   const store = useStyleProfilesStore();
   const toneStore = useToneStore();
@@ -159,7 +160,8 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
   );
 
   function handleEdit(profile: StyleProfile) {
-    // Navigate to the playground with the profile ID for full-page editing
+    // Close mobile drawer first if open, then navigate
+    onNavigate?.();
     router.push(`/playground?edit=${profile.id}`);
   }
 
@@ -238,7 +240,7 @@ export function StylePanel({ isInDrawer = false }: StylePanelProps) {
       <div className="p-3">
         <button
           type="button"
-          onClick={() => router.push("/playground")}
+          onClick={() => { onNavigate?.(); router.push("/playground"); }}
           className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-1.5 h-8 rounded-full border border-[var(--amber)] text-[var(--amber)] font-sans text-xs font-medium hover:bg-[var(--amber)] hover:text-[#1A1816] transition-colors"
         >
           <Plus className="size-3.5" />

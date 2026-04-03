@@ -115,7 +115,7 @@ export default function Home() {
               </button>
             </div>
             <div className="flex-1 min-h-0 overflow-y-auto">
-              <StylePanel isInDrawer />
+              <StylePanel isInDrawer onNavigate={() => setShowMobileDrawer(false)} />
             </div>
 
             {/* Navigation links (hidden on desktop header) */}
