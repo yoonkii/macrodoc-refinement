@@ -56,34 +56,52 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   const menuId = info.menuItemId as string;
   if (!menuId.startsWith('refine')) return;
 
-  chrome.tabs.sendMessage(tab.id, {
-    type: 'REFINE_SELECTION',
-    text: info.selectionText,
-    menuId,
-  });
+  chrome.tabs.sendMessage(
+    tab.id,
+    {
+      type: 'REFINE_SELECTION',
+      text: info.selectionText,
+      menuId,
+    },
+    () => {
+      // Check lastError to suppress "Receiving end does not exist" console errors
+      // when content script is not loaded (e.g., chrome:// pages)
+      if (chrome.runtime.lastError) {
+        // Content script not available on this page
+      }
+    },
+  );
 });
 
 // ── Message handler (for simple request/response) ──────────────────────────
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === 'GET_MODEL_CONFIG') {
-    getModelConfig().then(sendResponse);
+    getModelConfig()
+      .then(sendResponse)
+      .catch(() => sendResponse(null));
     return true;
   }
 
   if (message.type === 'GET_STYLE_PROFILES') {
-    getStyleProfiles().then(sendResponse);
+    getStyleProfiles()
+      .then(sendResponse)
+      .catch(() => sendResponse(null));
     return true;
   }
 
   if (message.type === 'GET_SETTINGS') {
-    getSettings().then(sendResponse);
+    getSettings()
+      .then(sendResponse)
+      .catch(() => sendResponse(null));
     return true;
   }
 
   if (message.type === 'OPEN_SIDE_PANEL') {
     if (message.tabId) {
-      chrome.sidePanel.open({ tabId: message.tabId });
+      chrome.sidePanel.open({ tabId: message.tabId }).catch(() => {
+        // Side panel may not be available in all contexts
+      });
     }
     sendResponse({ ok: true });
     return false;
@@ -100,8 +118,21 @@ chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== 'refine-stream') return;
 
   let abortController: AbortController | null = null;
+  let portDisconnected = false;
+
+  /** Safely send a message over the port, ignoring errors if already disconnected. */
+  function safeSend(msg: Record<string, unknown>): void {
+    if (portDisconnected) return;
+    try {
+      port.postMessage(msg);
+    } catch {
+      // Port was disconnected between our check and the send
+      portDisconnected = true;
+    }
+  }
 
   port.onDisconnect.addListener(() => {
+    portDisconnected = true;
     abortController?.abort();
     abortController = null;
   });
@@ -144,19 +175,21 @@ chrome.runtime.onConnect.addListener((port) => {
 
       if (useDefault) {
         for await (const chunk of streamRefine(prompt, signal)) {
-          port.postMessage({ type: 'CHUNK', text: chunk });
+          if (portDisconnected) return;
+          safeSend({ type: 'CHUNK', text: chunk });
         }
       } else {
         for await (const chunk of streamWithProvider(prompt, config, signal)) {
-          port.postMessage({ type: 'CHUNK', text: chunk });
+          if (portDisconnected) return;
+          safeSend({ type: 'CHUNK', text: chunk });
         }
       }
 
-      port.postMessage({ type: 'DONE' });
+      safeSend({ type: 'DONE' });
     } catch (err: unknown) {
-      if (signal.aborted) return;
+      if (signal.aborted || portDisconnected) return;
       const errorMessage = err instanceof Error ? err.message : String(err);
-      port.postMessage({ type: 'ERROR', error: errorMessage });
+      safeSend({ type: 'ERROR', error: errorMessage });
     }
   });
 });

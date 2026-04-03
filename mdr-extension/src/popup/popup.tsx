@@ -25,21 +25,30 @@ export function Popup() {
   }, []);
 
   const openSidePanel = async () => {
+    let opened = false;
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tab?.id) {
         // Must call sidePanel.open directly from popup (user gesture context)
         // Sending via runtime.sendMessage loses the gesture context
         await chrome.sidePanel.open({ tabId: tab.id });
+        opened = true;
       }
     } catch {
       // Fallback: try windowId-based open
-      const win = await chrome.windows.getCurrent();
-      if (win.id) {
-        await chrome.sidePanel.open({ windowId: win.id });
+      try {
+        const win = await chrome.windows.getCurrent();
+        if (win.id) {
+          await chrome.sidePanel.open({ windowId: win.id });
+          opened = true;
+        }
+      } catch {
+        // Side panel API unavailable
       }
     }
-    window.close();
+    if (opened) {
+      window.close();
+    }
   };
 
   const openOptions = () => {

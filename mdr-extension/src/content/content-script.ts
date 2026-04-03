@@ -12,12 +12,41 @@ let shadowRoot: ShadowRoot | null = null;
 let widgetButton: HTMLButtonElement | null = null;
 let currentSelectedText = '';
 let isRefining = false;
+let inlineWidgetEnabled = true;
+
+// Load the inline widget setting from storage on init
+chrome.storage.local.get('extensionSettings').then((data) => {
+  const settings = data['extensionSettings'] as { inlineWidgetEnabled?: boolean } | undefined;
+  if (settings && typeof settings.inlineWidgetEnabled === 'boolean') {
+    inlineWidgetEnabled = settings.inlineWidgetEnabled;
+  }
+});
+
+// Listen for setting changes in real time
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes['extensionSettings']?.newValue) {
+    const newSettings = changes['extensionSettings'].newValue as { inlineWidgetEnabled?: boolean };
+    if (typeof newSettings.inlineWidgetEnabled === 'boolean') {
+      inlineWidgetEnabled = newSettings.inlineWidgetEnabled;
+      if (!inlineWidgetEnabled) {
+        hideWidget();
+      }
+    }
+  }
+});
 
 // ── Widget creation (Shadow DOM for style isolation) ───────────────────────
 
 function ensureWidget(): { host: HTMLElement; button: HTMLButtonElement } {
-  if (widgetHost && shadowRoot && widgetButton) {
+  if (widgetHost && shadowRoot && widgetButton && document.body.contains(widgetHost)) {
     return { host: widgetHost, button: widgetButton };
+  }
+
+  // Clean up stale references if the host was detached from the DOM
+  if (widgetHost && !document.body.contains(widgetHost)) {
+    widgetHost = null;
+    shadowRoot = null;
+    widgetButton = null;
   }
 
   widgetHost = document.createElement('div');
@@ -86,7 +115,7 @@ function ensureWidget(): { host: HTMLElement; button: HTMLButtonElement } {
 // ── Show / hide widget ────────────────────────────────────────────────────
 
 function showWidget(x: number, y: number, text: string): void {
-  if (isRefining) return;
+  if (isRefining || !inlineWidgetEnabled) return;
 
   const { host } = ensureWidget();
   currentSelectedText = text;
@@ -117,21 +146,35 @@ function handleRefineClick(): void {
   isRefining = true;
   widgetButton?.classList.add('loading');
 
-  const port = chrome.runtime.connect({ name: 'refine-stream' });
+  let port: chrome.runtime.Port;
+  try {
+    port = chrome.runtime.connect({ name: 'refine-stream' });
+  } catch {
+    // Extension context invalidated (e.g., extension reloaded)
+    finishRefining();
+    return;
+  }
+
   let refinedText = '';
+
+  port.onDisconnect.addListener(() => {
+    // Service worker disconnected unexpectedly (e.g., worker restarted)
+    if (isRefining) {
+      if (refinedText) {
+        replaceSelectedText(refinedText);
+      }
+      finishRefining();
+    }
+  });
 
   port.onMessage.addListener((msg: { type: string; text?: string; error?: string }) => {
     if (msg.type === 'CHUNK' && msg.text) {
       refinedText += msg.text;
-    }
-
-    if (msg.type === 'DONE') {
+    } else if (msg.type === 'DONE') {
       replaceSelectedText(refinedText);
       finishRefining();
       port.disconnect();
-    }
-
-    if (msg.type === 'ERROR') {
+    } else if (msg.type === 'ERROR') {
       finishRefining();
       port.disconnect();
     }
@@ -218,6 +261,19 @@ document.addEventListener('mousedown', (event: MouseEvent) => {
   }
 });
 
+// ── Cleanup on page unload ───────────────────────────────────────────────
+
+window.addEventListener('beforeunload', () => {
+  if (widgetHost && document.body.contains(widgetHost)) {
+    widgetHost.remove();
+  }
+  widgetHost = null;
+  shadowRoot = null;
+  widgetButton = null;
+  currentSelectedText = '';
+  isRefining = false;
+});
+
 // ── Message listener (from background / popup) ────────────────────────────
 
 chrome.runtime.onMessage.addListener(
@@ -226,9 +282,7 @@ chrome.runtime.onMessage.addListener(
       currentSelectedText = message.text;
       handleRefineClick();
       sendResponse({ ok: true });
-    }
-
-    if (message.type === 'GET_ACTIVE_TEXT') {
+    } else if (message.type === 'GET_ACTIVE_TEXT') {
       const activeEl = document.activeElement;
       let text = '';
       if (
@@ -240,9 +294,7 @@ chrome.runtime.onMessage.addListener(
         text = activeEl.innerText;
       }
       sendResponse({ text });
-    }
-
-    if (message.type === 'INSERT_TEXT' && message.text) {
+    } else if (message.type === 'INSERT_TEXT' && message.text) {
       const activeEl = document.activeElement;
       if (
         activeEl instanceof HTMLTextAreaElement ||

@@ -110,10 +110,18 @@ export function Options() {
   // ── Save handler ───────────────────────────────────────────────────────
 
   const handleSave = useCallback(async () => {
-    await setModelConfig({ provider, model, apiKey });
-    await setSettings({ inlineWidgetEnabled });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    try {
+      await setModelConfig({ provider, model, apiKey });
+      await setSettings({ inlineWidgetEnabled });
+      setTestStatus('idle');
+      setTestMessage('');
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err: unknown) {
+      setTestStatus('error');
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      setTestMessage(`Save failed: ${errorMsg}`);
+    }
   }, [provider, model, apiKey, inlineWidgetEnabled]);
 
   // ── Provider change ────────────────────────────────────────────────────
@@ -203,17 +211,33 @@ export function Options() {
 
       const text = await file.text();
       try {
-        const profiles = JSON.parse(text);
-        if (!Array.isArray(profiles)) {
-          throw new Error('Invalid format');
+        const parsed: unknown = JSON.parse(text);
+        if (!Array.isArray(parsed)) {
+          throw new Error('File must contain a JSON array');
+        }
+        // Validate each profile has required fields
+        for (const item of parsed) {
+          if (
+            typeof item !== 'object' ||
+            item === null ||
+            typeof (item as Record<string, unknown>)['id'] !== 'string' ||
+            typeof (item as Record<string, unknown>)['name'] !== 'string' ||
+            typeof (item as Record<string, unknown>)['instructions'] !== 'string' ||
+            typeof (item as Record<string, unknown>)['type'] !== 'string'
+          ) {
+            throw new Error('Each profile must have id, name, instructions, and type fields');
+          }
         }
         const { setStyleProfiles } = await import('../storage/style-profiles');
-        await setStyleProfiles(profiles);
+        await setStyleProfiles(parsed);
+        setTestStatus('success');
+        setTestMessage(`Imported ${parsed.length} profile(s) successfully.`);
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
-      } catch {
+      } catch (err: unknown) {
         setTestStatus('error');
-        setTestMessage('Invalid profile file format.');
+        const errorMsg = err instanceof Error ? err.message : 'Invalid profile file format.';
+        setTestMessage(errorMsg);
       }
     };
     input.click();

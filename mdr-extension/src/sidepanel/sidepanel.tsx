@@ -278,13 +278,29 @@ export function SidePanel() {
   const [copyFeedback, setCopyFeedback] = useState(false);
   const portRef = useRef<chrome.runtime.Port | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load initial data from storage
   useEffect(() => {
-    getStyleProfiles().then(setProfiles);
+    getStyleProfiles().then(setProfiles).catch(() => {
+      // Storage may be unavailable briefly after install
+    });
     getModelConfig().then((c) => {
       setModelLabel(c.provider === 'default' ? 'Default' : `${c.provider}/${c.model}`);
+    }).catch(() => {
+      // Fall back to default label
     });
+  }, []);
+
+  // Clean up port and timers on unmount
+  useEffect(() => {
+    return () => {
+      portRef.current?.disconnect();
+      portRef.current = null;
+      if (copyTimerRef.current) {
+        clearTimeout(copyTimerRef.current);
+      }
+    };
   }, []);
 
   // Auto-scroll output during streaming
@@ -307,22 +323,45 @@ export function SidePanel() {
       // Disconnect any previous port
       portRef.current?.disconnect();
 
-      const port = chrome.runtime.connect({ name: 'refine-stream' });
+      let port: chrome.runtime.Port;
+      try {
+        port = chrome.runtime.connect({ name: 'refine-stream' });
+      } catch {
+        // Extension context invalidated
+        setIsStreaming(false);
+        setOutputs((prev) => ({
+          ...prev,
+          [tab]: 'Error: Extension context lost. Please reload the page.',
+        }));
+        return;
+      }
       portRef.current = port;
 
       let accumulated = '';
+
+      // Handle unexpected port disconnection (e.g., service worker restart)
+      port.onDisconnect.addListener(() => {
+        if (portRef.current === port) {
+          portRef.current = null;
+          setIsStreaming(false);
+          if (!accumulated) {
+            setOutputs((prev) => ({
+              ...prev,
+              [tab]: 'Error: Connection lost. Please try again.',
+            }));
+          }
+        }
+      });
 
       port.onMessage.addListener((msg: StreamMessage) => {
         if (msg.type === 'CHUNK' && msg.text) {
           accumulated += msg.text;
           setOutputs((prev) => ({ ...prev, [tab]: accumulated }));
-        }
-        if (msg.type === 'DONE') {
+        } else if (msg.type === 'DONE') {
           setIsStreaming(false);
           port.disconnect();
           portRef.current = null;
-        }
-        if (msg.type === 'ERROR') {
+        } else if (msg.type === 'ERROR') {
           setOutputs((prev) => ({
             ...prev,
             [tab]: `Error: ${msg.error ?? 'Unknown error'}`,
@@ -366,14 +405,20 @@ export function SidePanel() {
   // ── Grab text from page ────────────────────────────────────────────────
 
   const grabFromPage = useCallback(async () => {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.id) return;
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) return;
 
-    chrome.tabs.sendMessage(tab.id, { type: 'GET_ACTIVE_TEXT' }, (response) => {
-      if (response?.text) {
-        setInputText(response.text);
-      }
-    });
+      chrome.tabs.sendMessage(tab.id, { type: 'GET_ACTIVE_TEXT' }, (response) => {
+        // chrome.runtime.lastError must be checked to prevent console errors
+        if (chrome.runtime.lastError) return;
+        if (response?.text) {
+          setInputText(response.text);
+        }
+      });
+    } catch {
+      // Tab query can fail if no active tab
+    }
   }, []);
 
   // ── Insert into page ───────────────────────────────────────────────────
@@ -382,10 +427,19 @@ export function SidePanel() {
     const text = outputs[activeTab];
     if (!text) return;
 
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.id) return;
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) return;
 
-    chrome.tabs.sendMessage(tab.id, { type: 'INSERT_TEXT', text });
+      chrome.tabs.sendMessage(tab.id, { type: 'INSERT_TEXT', text }, () => {
+        // Check lastError to suppress "Receiving end does not exist" console errors
+        if (chrome.runtime.lastError) {
+          // Content script not available on this page
+        }
+      });
+    } catch {
+      // Tab query can fail if no active tab
+    }
   }, [outputs, activeTab]);
 
   // ── Copy to clipboard with feedback ───────────────────────────────────
@@ -396,7 +450,15 @@ export function SidePanel() {
 
     navigator.clipboard.writeText(text).then(() => {
       setCopyFeedback(true);
-      setTimeout(() => setCopyFeedback(false), 1500);
+      if (copyTimerRef.current) {
+        clearTimeout(copyTimerRef.current);
+      }
+      copyTimerRef.current = setTimeout(() => {
+        setCopyFeedback(false);
+        copyTimerRef.current = null;
+      }, 1500);
+    }).catch(() => {
+      // Clipboard write failed; ignore silently in extension context
     });
   }, [outputs, activeTab]);
 
