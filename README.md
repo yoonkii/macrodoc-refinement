@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Macro Doc Refinement.
 
-## Getting Started
+AI-powered text refinement that adapts to your voice. Write once, get versions optimized for LinkedIn, X, Instagram, and Substack.
 
-First, run the development server:
+**[Try it now](https://mdr-nextjs.vercel.app)** — no sign-up, no API key required.
+
+## What it does
+
+Paste or type your text. Macro Doc Refinement rewrites it in real time using AI, matching the personality and platform you choose.
+
+- **Personality Modes** — MDR Style (Severance-inspired), Professional, Academic, Casual, Warner, Gen Z
+- **Platform Tabs** — Refined, LinkedIn, X/Twitter, Instagram, Substack. Each with platform-specific formatting, tone, and character limits.
+- **Real-time Streaming** — see the refined text appear token by token as the AI writes
+- **Style Playground** — create and test your own custom refinement styles with system prompts and few-shot examples
+- **BYOM (Bring Your Own Model)** — use OpenAI, Anthropic, Google, or Grok with your own API key. Keys stay in your browser, never touch our servers.
+- **MDR Easter Egg** — triple-click the title for a Severance-inspired theme
+
+## Use it
+
+### Web App
+
+**https://mdr-nextjs.vercel.app**
+
+Works in any browser. Free tier uses Gemini Flash Lite (30 requests/minute). Add your own API key in Settings for unlimited usage with your preferred model.
+
+### Chrome Extension
+
+The extension brings text refinement to every text field on the web — Gmail, Slack, LinkedIn, Twitter, anywhere.
+
+**Install from source:**
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd mdr-extension
+npm install
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then in Chrome:
+1. Go to `chrome://extensions`
+2. Turn on **Developer mode** (top right)
+3. Click **Load unpacked**
+4. Select the `mdr-extension/dist` folder
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Features:**
+- **Inline Widget** — select text on any page, click "Refine" to replace it
+- **Side Panel** — full MDR experience in Chrome's side panel
+- **Context Menu** — right-click selected text to refine
+- **BYOM** — configure your own API key in the extension options
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Run locally
 
-## Learn More
+```bash
+npm install
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open http://localhost:3000
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Frontend:** Next.js 15, React 19, Tailwind CSS, Geist Sans
+- **State:** Zustand with localStorage persistence
+- **API:** Gemini via Cloud Run proxy (free tier) + direct BYOM to OpenAI/Anthropic/Google/Grok
+- **Design:** Ethereal Glass aesthetic — dark OLED background, amber accents, double-bezel glass cards
+- **Extension:** Chrome MV3, Vite, React, Shadow DOM for inline widget
 
-## Deploy on Vercel
+## Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+.
+├── app/                    # Next.js pages (/, /playground, /settings, /legal)
+├── components/             # React components
+├── lib/
+│   ├── api.ts              # Proxy streaming API
+│   ├── byom-api.ts         # Direct provider streaming (OpenAI, Anthropic, Google, Grok)
+│   ├── prompt-builder.ts   # Composable prompt construction
+│   ├── constants.ts        # Default profiles, models, platform metadata
+│   └── stores/             # Zustand stores (text-refine, style-profiles, tone, model-config)
+└── mdr-extension/          # Chrome Extension source
+    ├── src/content/        # Content script + inline widget
+    ├── src/sidepanel/      # Side panel React app
+    ├── src/background/     # Service worker
+    └── src/shared/         # Shared code from web app
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Security
+
+- API keys are stored in your browser's localStorage only — never sent to our servers
+- BYOM calls go directly from your browser to the AI provider
+- CORS whitelist on the proxy server (not wildcard)
+- Model allowlist prevents cost amplification
+- No authentication, no user accounts, no tracking, no PII collected
+
+## License
+
+MIT
