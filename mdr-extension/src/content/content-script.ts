@@ -1,0 +1,262 @@
+// ---------------------------------------------------------------------------
+// Content script — injects the floating "Refine" widget on text selection
+// and handles message-based communication with the background service worker.
+// ---------------------------------------------------------------------------
+
+const WIDGET_ID = 'mdr-refine-widget';
+const MIN_SELECTION_LENGTH = 4;
+const WIDGET_OFFSET_Y = 40;
+
+let widgetHost: HTMLElement | null = null;
+let shadowRoot: ShadowRoot | null = null;
+let widgetButton: HTMLButtonElement | null = null;
+let currentSelectedText = '';
+let isRefining = false;
+
+// ── Widget creation (Shadow DOM for style isolation) ───────────────────────
+
+function ensureWidget(): { host: HTMLElement; button: HTMLButtonElement } {
+  if (widgetHost && shadowRoot && widgetButton) {
+    return { host: widgetHost, button: widgetButton };
+  }
+
+  widgetHost = document.createElement('div');
+  widgetHost.id = WIDGET_ID;
+  widgetHost.style.cssText = 'position:fixed;z-index:2147483647;display:none;';
+
+  shadowRoot = widgetHost.attachShadow({ mode: 'closed' });
+  shadowRoot.innerHTML = `
+    <style>
+      :host { all: initial; }
+      .mdr-btn {
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: #E8A838;
+        color: #1A1816;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+        line-height: 1;
+      }
+      .mdr-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      }
+      .mdr-btn.loading {
+        opacity: 0.7;
+        pointer-events: none;
+      }
+      .mdr-spinner {
+        display: none;
+        width: 12px;
+        height: 12px;
+        border: 2px solid #1A1816;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: mdr-spin 0.6s linear infinite;
+      }
+      .mdr-btn.loading .mdr-spinner { display: inline-block; }
+      .mdr-btn.loading .mdr-icon { display: none; }
+      @keyframes mdr-spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+    <button class="mdr-btn">
+      <span class="mdr-icon">&#10024;</span>
+      <span class="mdr-spinner"></span>
+      Refine
+    </button>
+  `;
+
+  widgetButton = shadowRoot.querySelector('.mdr-btn') as HTMLButtonElement;
+  widgetButton.addEventListener('click', handleRefineClick);
+
+  document.body.appendChild(widgetHost);
+  return { host: widgetHost, button: widgetButton };
+}
+
+// ── Show / hide widget ────────────────────────────────────────────────────
+
+function showWidget(x: number, y: number, text: string): void {
+  if (isRefining) return;
+
+  const { host } = ensureWidget();
+  currentSelectedText = text;
+
+  // Clamp position to viewport
+  const viewportWidth = window.innerWidth;
+  const clampedX = Math.min(x, viewportWidth - 120);
+  const clampedY = Math.max(y - WIDGET_OFFSET_Y, 8);
+
+  host.style.left = `${clampedX}px`;
+  host.style.top = `${clampedY}px`;
+  host.style.display = 'block';
+}
+
+function hideWidget(): void {
+  if (isRefining) return;
+  if (widgetHost) {
+    widgetHost.style.display = 'none';
+  }
+  currentSelectedText = '';
+}
+
+// ── Refine click handler ──────────────────────────────────────────────────
+
+function handleRefineClick(): void {
+  if (!currentSelectedText || isRefining) return;
+
+  isRefining = true;
+  widgetButton?.classList.add('loading');
+
+  const port = chrome.runtime.connect({ name: 'refine-stream' });
+  let refinedText = '';
+
+  port.onMessage.addListener((msg: { type: string; text?: string; error?: string }) => {
+    if (msg.type === 'CHUNK' && msg.text) {
+      refinedText += msg.text;
+    }
+
+    if (msg.type === 'DONE') {
+      replaceSelectedText(refinedText);
+      finishRefining();
+      port.disconnect();
+    }
+
+    if (msg.type === 'ERROR') {
+      finishRefining();
+      port.disconnect();
+    }
+  });
+
+  port.postMessage({ text: currentSelectedText });
+}
+
+function finishRefining(): void {
+  isRefining = false;
+  widgetButton?.classList.remove('loading');
+  hideWidget();
+}
+
+// ── Replace selected text in the active element ───────────────────────────
+
+function replaceSelectedText(newText: string): void {
+  const activeElement = document.activeElement;
+
+  // Handle textarea / input elements
+  if (
+    activeElement instanceof HTMLTextAreaElement ||
+    activeElement instanceof HTMLInputElement
+  ) {
+    const start = activeElement.selectionStart ?? 0;
+    const end = activeElement.selectionEnd ?? 0;
+    const currentValue = activeElement.value;
+
+    activeElement.value =
+      currentValue.slice(0, start) + newText + currentValue.slice(end);
+
+    // Restore cursor position after replacement
+    const newCursorPos = start + newText.length;
+    activeElement.setSelectionRange(newCursorPos, newCursorPos);
+
+    // Dispatch input event so frameworks detect the change
+    activeElement.dispatchEvent(new Event('input', { bubbles: true }));
+    return;
+  }
+
+  // Handle contentEditable elements
+  if (activeElement instanceof HTMLElement && activeElement.isContentEditable) {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    range.deleteContents();
+    range.insertNode(document.createTextNode(newText));
+
+    // Collapse cursor to end of inserted text
+    selection.collapseToEnd();
+
+    // Dispatch input event
+    activeElement.dispatchEvent(new Event('input', { bubbles: true }));
+    return;
+  }
+
+  // Fallback: copy refined text to clipboard
+  navigator.clipboard.writeText(newText).catch(() => {
+    // Silent fallback — clipboard write may be blocked
+  });
+}
+
+// ── Selection listener ────────────────────────────────────────────────────
+
+document.addEventListener('mouseup', (event: MouseEvent) => {
+  // Small delay to let the selection finalize
+  setTimeout(() => {
+    const selection = window.getSelection();
+    const text = selection?.toString().trim();
+
+    if (text && text.length >= MIN_SELECTION_LENGTH) {
+      showWidget(event.clientX, event.clientY, text);
+    } else {
+      hideWidget();
+    }
+  }, 10);
+});
+
+// Hide widget when clicking elsewhere
+document.addEventListener('mousedown', (event: MouseEvent) => {
+  if (widgetHost && !widgetHost.contains(event.target as Node)) {
+    hideWidget();
+  }
+});
+
+// ── Message listener (from background / popup) ────────────────────────────
+
+chrome.runtime.onMessage.addListener(
+  (message: { type: string; text?: string; menuId?: string }, _sender, sendResponse) => {
+    if (message.type === 'REFINE_SELECTION' && message.text) {
+      currentSelectedText = message.text;
+      handleRefineClick();
+      sendResponse({ ok: true });
+    }
+
+    if (message.type === 'GET_ACTIVE_TEXT') {
+      const activeEl = document.activeElement;
+      let text = '';
+      if (
+        activeEl instanceof HTMLTextAreaElement ||
+        activeEl instanceof HTMLInputElement
+      ) {
+        text = activeEl.value;
+      } else if (activeEl instanceof HTMLElement && activeEl.isContentEditable) {
+        text = activeEl.innerText;
+      }
+      sendResponse({ text });
+    }
+
+    if (message.type === 'INSERT_TEXT' && message.text) {
+      const activeEl = document.activeElement;
+      if (
+        activeEl instanceof HTMLTextAreaElement ||
+        activeEl instanceof HTMLInputElement
+      ) {
+        activeEl.value = message.text;
+        activeEl.dispatchEvent(new Event('input', { bubbles: true }));
+      } else if (activeEl instanceof HTMLElement && activeEl.isContentEditable) {
+        activeEl.innerText = message.text;
+        activeEl.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      sendResponse({ ok: true });
+    }
+
+    return false;
+  },
+);
