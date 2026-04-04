@@ -69,8 +69,8 @@ const S = {
     left: 0,
     right: 0,
     height: '1px',
-    background: `linear-gradient(90deg, ${cssVar('amber')} 0%, ${cssVar('border')} 40%, transparent 100%)`,
-    opacity: 0.5,
+    background: `linear-gradient(90deg, ${cssVar('amber')} 0%, ${cssVar('border')} 50%, transparent 100%)`,
+    opacity: 0.7,
   },
   headerTitle: {
     fontSize: '14px',
@@ -100,7 +100,7 @@ const S = {
   sectionDividerLine: {
     flex: 1,
     height: '1px',
-    background: cssVar('border-subtle'),
+    background: cssVar('border'),
   },
   sectionDividerLabel: {
     fontSize: '9px',
@@ -203,15 +203,15 @@ const S = {
     padding: '3px',
     gap: '2px',
     flexShrink: 0,
-    border: `1px solid ${cssVar('border-subtle')}`,
+    border: `1px solid ${cssVar('border')}`,
   },
 
   outputArea: {
     flex: 1,
     padding: '12px',
-    background: cssVar('surface-alt'),
+    background: cssVar('surface'),
     borderRadius: '8px',
-    border: `1px solid ${cssVar('border-subtle')}`,
+    border: `1px solid ${cssVar('border')}`,
     fontSize: '13px',
     lineHeight: '1.65',
     color: cssVar('text'),
@@ -237,7 +237,7 @@ const S = {
   // ── Footer ──────────────────────────────────────────────────────────────
   footer: {
     padding: '12px 16px',
-    borderTop: `1px solid ${cssVar('border-subtle')}`,
+    borderTop: `1px solid ${cssVar('border')}`,
     display: 'flex',
     gap: '8px',
     flexShrink: 0,
@@ -342,7 +342,7 @@ function tabStyle(isActive: boolean): React.CSSProperties {
     alignItems: 'center',
     justifyContent: 'center',
     gap: '3px',
-    boxShadow: isActive ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+    boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
   };
 }
 
