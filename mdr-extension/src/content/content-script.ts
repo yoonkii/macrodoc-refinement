@@ -261,6 +261,136 @@ document.addEventListener('mousedown', (event: MouseEvent) => {
   }
 });
 
+// ── MDR website profile sync ─────────────────────────────────────────────
+// When running on the MDR website, sync style profiles between localStorage
+// (web app / Zustand persist) and chrome.storage.local (extension).
+
+const MDR_LOCALHOST_PORT = '3000';
+const ZUSTAND_PERSIST_KEY = 'mdr-style-profiles';
+
+function isMdrDomain(): boolean {
+  const { hostname, port } = window.location;
+  if (hostname === 'macrodocrefinement.com' || hostname.endsWith('.macrodocrefinement.com')) {
+    return true;
+  }
+  if (hostname === 'localhost' && port === MDR_LOCALHOST_PORT) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Read style profiles from the web app's Zustand persist localStorage.
+ * Zustand persist format: { state: { profiles: StyleProfile[] }, version: number }
+ */
+function readWebProfiles(): unknown[] | null {
+  try {
+    const raw = localStorage.getItem(ZUSTAND_PERSIST_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    // Zustand persist envelope: { state: { profiles: [...] }, version: N }
+    const profiles = parsed?.state?.profiles;
+    if (Array.isArray(profiles)) {
+      return profiles;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Write extension profiles into the web app's Zustand persist localStorage.
+ * Preserves existing profiles and merges in new ones from the extension.
+ */
+function writeWebProfiles(extensionProfiles: unknown[]): void {
+  try {
+    const raw = localStorage.getItem(ZUSTAND_PERSIST_KEY);
+    let existing: { state: { profiles: unknown[] }; version: number } = {
+      state: { profiles: [] },
+      version: 0,
+    };
+
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.state?.profiles && Array.isArray(parsed.state.profiles)) {
+        existing = parsed;
+      }
+    }
+
+    // Merge: add extension profiles not already present (by ID)
+    const existingIds = new Set(
+      existing.state.profiles
+        .filter((p): p is { id: string } => typeof (p as { id?: unknown })?.id === 'string')
+        .map((p) => p.id),
+    );
+
+    let addedCount = 0;
+    for (const profile of extensionProfiles) {
+      const profileObj = profile as { id?: string };
+      if (profileObj.id && !existingIds.has(profileObj.id)) {
+        existing.state.profiles.push(profile);
+        existingIds.add(profileObj.id);
+        addedCount += 1;
+      }
+    }
+
+    if (addedCount > 0) {
+      localStorage.setItem(ZUSTAND_PERSIST_KEY, JSON.stringify(existing));
+    }
+  } catch {
+    // localStorage may be unavailable or quota exceeded
+  }
+}
+
+function runMdrSync(): void {
+  if (!isMdrDomain()) return;
+
+  // Phase 1: Read web profiles and send to extension background
+  const webProfiles = readWebProfiles();
+  if (webProfiles && webProfiles.length > 0) {
+    chrome.runtime.sendMessage(
+      { type: 'SYNC_PROFILES_FROM_WEB', profiles: webProfiles },
+      (response) => {
+        if (chrome.runtime.lastError) return;
+        // Phase 2: Write extension-only profiles back to web localStorage
+        if (response?.extensionProfiles && Array.isArray(response.extensionProfiles)) {
+          writeWebProfiles(response.extensionProfiles);
+        }
+      },
+    );
+  } else {
+    // No web profiles yet — still send a request so extension profiles
+    // can be written to the web app
+    chrome.runtime.sendMessage(
+      { type: 'SYNC_PROFILES_FROM_WEB', profiles: [] },
+      (response) => {
+        if (chrome.runtime.lastError) return;
+        if (response?.extensionProfiles && Array.isArray(response.extensionProfiles)) {
+          writeWebProfiles(response.extensionProfiles);
+        }
+      },
+    );
+  }
+}
+
+// Run sync on page load for MDR domains
+runMdrSync();
+
+// Listen for reverse sync requests (extension pushing profiles to web)
+chrome.runtime.onMessage.addListener(
+  (message: { type: string; profiles?: unknown[] }, _sender, sendResponse) => {
+    if (message.type === 'SYNC_PROFILES_TO_WEB' && isMdrDomain()) {
+      if (message.profiles && Array.isArray(message.profiles)) {
+        writeWebProfiles(message.profiles);
+      }
+      sendResponse({ ok: true });
+    }
+    return false;
+  },
+);
+
 // ── Cleanup on page unload ───────────────────────────────────────────────
 
 window.addEventListener('beforeunload', () => {

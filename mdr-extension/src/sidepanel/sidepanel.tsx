@@ -388,6 +388,8 @@ function InsertIcon() {
 
 // ── Component ──────────────────────────────────────────────────────────────
 
+const MDR_WEBSITE_URL = 'https://macrodocrefinement.com';
+
 export function SidePanel() {
   const [inputText, setInputText] = useState('');
   const [outputs, setOutputs] = useState<Record<TabKey, string>>({
@@ -402,9 +404,11 @@ export function SidePanel() {
   const [profiles, setProfiles] = useState<StyleProfile[]>([]);
   const [modelLabel, setModelLabel] = useState('Default');
   const [copyFeedback, setCopyFeedback] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const portRef = useRef<chrome.runtime.Port | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load initial data from storage
   useEffect(() => {
@@ -418,6 +422,47 @@ export function SidePanel() {
     });
   }, []);
 
+  // Listen for sync completion messages from the background service worker
+  useEffect(() => {
+    function handleSyncMessage(message: {
+      type: string;
+      addedCount?: number;
+      updatedCount?: number;
+      totalCount?: number;
+    }) {
+      if (message.type === 'SYNC_COMPLETE') {
+        const added = message.addedCount ?? 0;
+        const updated = message.updatedCount ?? 0;
+        const total = message.totalCount ?? 0;
+
+        let text: string;
+        if (added === 0 && updated === 0) {
+          text = `Synced — ${total} profiles up to date`;
+        } else {
+          const parts: string[] = [];
+          if (added > 0) parts.push(`${added} added`);
+          if (updated > 0) parts.push(`${updated} updated`);
+          text = `Synced ${total} profiles (${parts.join(', ')})`;
+        }
+
+        setSyncMessage(text);
+        if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+        syncTimerRef.current = setTimeout(() => {
+          setSyncMessage(null);
+          syncTimerRef.current = null;
+        }, 3000);
+
+        // Refresh profiles in the side panel
+        getStyleProfiles().then(setProfiles).catch(() => {});
+      }
+    }
+
+    chrome.runtime.onMessage.addListener(handleSyncMessage);
+    return () => {
+      chrome.runtime.onMessage.removeListener(handleSyncMessage);
+    };
+  }, []);
+
   // Clean up port and timers on unmount
   useEffect(() => {
     return () => {
@@ -425,6 +470,9 @@ export function SidePanel() {
       portRef.current = null;
       if (copyTimerRef.current) {
         clearTimeout(copyTimerRef.current);
+      }
+      if (syncTimerRef.current) {
+        clearTimeout(syncTimerRef.current);
       }
     };
   }, []);
@@ -595,6 +643,12 @@ export function SidePanel() {
     setProfiles(updated);
   }, []);
 
+  // ── Open MDR website to trigger sync ────────────────────────────────
+
+  const openMdrWebsite = useCallback(() => {
+    chrome.tabs.create({ url: MDR_WEBSITE_URL });
+  }, []);
+
   // ── Derive ordered style chips ────────────────────────────────────────
 
   const styleProfiles = profiles
@@ -654,8 +708,41 @@ export function SidePanel() {
           <div style={S.sectionDivider}>
             <div style={S.sectionDividerLine} />
             <span style={S.sectionDividerLabel}>Style</span>
+            <button
+              style={{
+                background: 'none',
+                border: 'none',
+                color: cssVar('muted'),
+                fontSize: '9px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                padding: '0 2px',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase' as const,
+                transition: 'color 0.15s',
+                flexShrink: 0,
+              }}
+              onClick={openMdrWebsite}
+              title="Open MDR website to sync custom profiles"
+            >
+              Sync
+            </button>
             <div style={S.sectionDividerLine} />
           </div>
+          {syncMessage && (
+            <div
+              style={{
+                fontSize: '10px',
+                color: cssVar('amber'),
+                fontWeight: 500,
+                marginBottom: '6px',
+                letterSpacing: '0.01em',
+                transition: 'opacity 0.3s',
+              }}
+            >
+              {syncMessage}
+            </div>
+          )}
           <div style={S.chipRow}>
             {styleProfiles.map((profile) => (
               <button

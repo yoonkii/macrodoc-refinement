@@ -8,7 +8,7 @@ import { streamWithProvider } from '../shared/byom-api';
 import { buildRefinementPrompt } from '../shared/prompt-builder';
 import { getModelConfig } from '../storage/model-config';
 import { getSettings } from '../storage/settings';
-import { getStyleProfiles } from '../storage/style-profiles';
+import { getStyleProfiles, mergeProfiles } from '../storage/style-profiles';
 
 // ── Context menu creation ──────────────────────────────────────────────────
 
@@ -105,6 +105,45 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     }
     sendResponse({ ok: true });
     return false;
+  }
+
+  // ── Profile sync from MDR website ───────────────────────────────────────
+  if (message.type === 'SYNC_PROFILES_FROM_WEB') {
+    const incoming = message.profiles;
+    if (!Array.isArray(incoming)) {
+      sendResponse({ ok: false, error: 'Invalid profiles data' });
+      return false;
+    }
+
+    (async () => {
+      try {
+        const { merged, addedCount, updatedCount } = await mergeProfiles(incoming);
+
+        // Notify any open side panels about the sync result
+        chrome.runtime.sendMessage({
+          type: 'SYNC_COMPLETE',
+          addedCount,
+          updatedCount,
+          totalCount: merged.length,
+        }).catch(() => {
+          // No listeners — side panel may not be open
+        });
+
+        // Return all extension profiles so the content script can
+        // write extension-only profiles back to the web app's localStorage
+        sendResponse({
+          ok: true,
+          addedCount,
+          updatedCount,
+          extensionProfiles: merged,
+        });
+      } catch {
+        sendResponse({ ok: false, error: 'Merge failed' });
+      }
+    })();
+
+    // Return true to indicate async sendResponse
+    return true;
   }
 
   return false;

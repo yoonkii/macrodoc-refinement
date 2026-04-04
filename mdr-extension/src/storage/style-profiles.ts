@@ -43,3 +43,40 @@ export async function resetStyleProfiles(): Promise<void> {
     [INITIALIZED_KEY]: true,
   });
 }
+
+/**
+ * Merge incoming profiles (e.g. from the web app) with existing extension profiles.
+ * - New profiles (by ID) are appended.
+ * - Existing profiles (by ID) are updated in place.
+ * - Profiles that exist only in the extension are preserved (never deleted).
+ * Returns the merged array and the count of newly added profiles.
+ */
+export async function mergeProfiles(
+  incoming: StyleProfile[],
+): Promise<{ merged: StyleProfile[]; addedCount: number; updatedCount: number }> {
+  const existing = await getStyleProfiles();
+  const existingById = new Map(existing.map((p) => [p.id, p]));
+  const mergedById = new Map(existingById);
+
+  let addedCount = 0;
+  let updatedCount = 0;
+
+  for (const profile of incoming) {
+    if (!profile.id || !profile.name) continue; // skip malformed entries
+
+    if (mergedById.has(profile.id)) {
+      // Update existing profile with incoming data
+      mergedById.set(profile.id, { ...profile });
+      updatedCount += 1;
+    } else {
+      // New profile — append
+      mergedById.set(profile.id, { ...profile });
+      addedCount += 1;
+    }
+  }
+
+  const merged = Array.from(mergedById.values());
+  await setStyleProfiles(merged);
+
+  return { merged, addedCount, updatedCount };
+}
