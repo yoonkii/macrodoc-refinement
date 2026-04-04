@@ -4,6 +4,50 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MDR Settings</title>
+    <style>
+      :root {
+        --mdr-bg: #FAFAF8;
+        --mdr-surface: #F0EEE9;
+        --mdr-surface-hover: #E5E2DC;
+        --mdr-text: #1A1816;
+        --mdr-text-secondary: #3D3833;
+        --mdr-muted: #6B665E;
+        --mdr-border: #ADA69B;
+        --mdr-amber: #D99A2B;
+        --mdr-amber-text: #FFFFFF;
+        --mdr-red: #DC3545;
+        --mdr-green: #198754;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --mdr-bg: #0C0C0E;
+          --mdr-surface: #161618;
+          --mdr-surface-hover: #1E1E21;
+          --mdr-text: #F0EDE8;
+          --mdr-text-secondary: #C8C3BA;
+          --mdr-muted: #7A756C;
+          --mdr-border: #3A3A3F;
+          --mdr-amber: #E8A838;
+          --mdr-amber-text: #1A1816;
+          --mdr-red: #F85149;
+          --mdr-green: #3FB950;
+        }
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        background: var(--mdr-bg);
+        color: var(--mdr-text);
+        font-family: -apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+        font-size: 13px; line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      select, input[type="password"], input[type="text"] { color-scheme: light dark; }
+      input:focus, select:focus {
+        border-color: var(--mdr-amber) !important;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(217, 154, 43, 0.25);
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

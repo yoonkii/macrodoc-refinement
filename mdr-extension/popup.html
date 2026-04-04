@@ -4,6 +4,44 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MDR</title>
+    <style>
+      :root {
+        --mdr-bg: #FAFAF8;
+        --mdr-surface: #F0EEE9;
+        --mdr-text: #1A1816;
+        --mdr-text-secondary: #3D3833;
+        --mdr-muted: #6B665E;
+        --mdr-border: #ADA69B;
+        --mdr-amber: #D99A2B;
+        --mdr-amber-text: #FFFFFF;
+        --mdr-icon-bg: #0A0A0A;
+        --mdr-icon-text: #F0F0F0;
+        --mdr-icon-border: #ADA69B;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --mdr-bg: #0C0C0E;
+          --mdr-surface: #161618;
+          --mdr-text: #F0EDE8;
+          --mdr-text-secondary: #C8C3BA;
+          --mdr-muted: #7A756C;
+          --mdr-border: #3A3A3F;
+          --mdr-amber: #E8A838;
+          --mdr-amber-text: #1A1816;
+          --mdr-icon-bg: #F0F0F0;
+          --mdr-icon-text: #0A0A0A;
+          --mdr-icon-border: #3A3A3F;
+        }
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        background: var(--mdr-bg);
+        color: var(--mdr-text);
+        font-family: -apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+        font-size: 13px;
+        -webkit-font-smoothing: antialiased;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

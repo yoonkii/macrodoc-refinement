@@ -4,6 +4,62 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MDR Side Panel</title>
+    <style>
+      :root {
+        --mdr-bg: #FAFAF8;
+        --mdr-surface: #F0EEE9;
+        --mdr-surface-alt: #E8E5DF;
+        --mdr-text: #1A1816;
+        --mdr-text-secondary: #3D3833;
+        --mdr-muted: #6B665E;
+        --mdr-dim: #908A80;
+        --mdr-border: #ADA69B;
+        --mdr-border-subtle: #C5BFB5;
+        --mdr-amber: #D99A2B;
+        --mdr-amber-hover: #C48B22;
+        --mdr-amber-text: #FFFFFF;
+        --mdr-amber-dim: rgba(217, 154, 43, 0.15);
+        --mdr-amber-subtle: rgba(217, 154, 43, 0.08);
+        --mdr-surface-hover: #E5E2DC;
+        --mdr-focus-ring: rgba(217, 154, 43, 0.40);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --mdr-bg: #0C0C0E;
+          --mdr-surface: #161618;
+          --mdr-surface-alt: #1C1C1F;
+          --mdr-text: #F0EDE8;
+          --mdr-text-secondary: #C8C3BA;
+          --mdr-muted: #7A756C;
+          --mdr-dim: #5A5650;
+          --mdr-border: #3A3A3F;
+          --mdr-border-subtle: #2E2E33;
+          --mdr-amber: #E8A838;
+          --mdr-amber-hover: #F0B848;
+          --mdr-amber-text: #1A1816;
+          --mdr-amber-dim: rgba(232, 168, 56, 0.15);
+          --mdr-amber-subtle: rgba(232, 168, 56, 0.07);
+          --mdr-surface-hover: #2A2A2E;
+          --mdr-focus-ring: rgba(232, 168, 56, 0.35);
+        }
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        background: var(--mdr-bg);
+        color: var(--mdr-text);
+        font-family: -apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+        font-size: 13px; line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      ::-webkit-scrollbar { width: 4px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: var(--mdr-border); border-radius: 4px; }
+      @keyframes mdr-blink { 50% { opacity: 0; } }
+      textarea:focus {
+        border-color: var(--mdr-amber) !important;
+        box-shadow: 0 0 0 2px var(--mdr-focus-ring) !important;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
