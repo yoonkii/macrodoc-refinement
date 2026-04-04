@@ -49,135 +49,177 @@ const S = {
     display: 'flex',
     flexDirection: 'column' as const,
     overflow: 'hidden',
-    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontFamily: "-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif",
     background: cssVar('bg'),
     color: cssVar('text'),
   },
 
-  // Header
+  // ── Header ──────────────────────────────────────────────────────────────
   header: {
-    padding: '12px',
-    borderBottom: `1px solid ${cssVar('border')}`,
+    padding: '14px 16px 13px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     flexShrink: 0,
+    position: 'relative' as const,
+  },
+  headerGradientBorder: {
+    position: 'absolute' as const,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '1px',
+    background: `linear-gradient(90deg, ${cssVar('amber')} 0%, ${cssVar('border')} 40%, transparent 100%)`,
+    opacity: 0.5,
   },
   headerTitle: {
-    fontSize: '13px',
-    fontWeight: 700,
+    fontSize: '14px',
+    fontWeight: 600,
     color: cssVar('text'),
     letterSpacing: '-0.01em',
   },
-  headerModel: {
-    fontSize: '10px',
+  modelBadge: {
+    fontSize: '9px',
+    fontWeight: 500,
     color: cssVar('muted'),
-    letterSpacing: '0.02em',
-  },
-
-  // Section labels
-  sectionLabel: {
-    fontSize: '10px',
-    fontWeight: 600,
-    color: cssVar('muted'),
+    letterSpacing: '0.04em',
     textTransform: 'uppercase' as const,
-    letterSpacing: '0.08em',
-    marginBottom: '6px',
+    background: cssVar('surface'),
+    padding: '3px 7px',
+    borderRadius: '4px',
+    border: `1px solid ${cssVar('border-subtle')}`,
   },
 
-  // Body scroll area
+  // ── Section divider labels ──────────────────────────────────────────────
+  sectionDivider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    margin: '4px 0 8px',
+  },
+  sectionDividerLine: {
+    flex: 1,
+    height: '1px',
+    background: cssVar('border-subtle'),
+  },
+  sectionDividerLabel: {
+    fontSize: '9px',
+    fontWeight: 600,
+    color: cssVar('dim'),
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.1em',
+    flexShrink: 0,
+  },
+
+  // ── Body scroll area ──────────────────────────────────────────────────
   body: {
     flex: 1,
     overflowY: 'auto' as const,
-    padding: '12px',
+    padding: '12px 16px',
     display: 'flex',
     flexDirection: 'column' as const,
-    gap: '8px',
+    gap: '4px',
   },
 
-  // Textarea
+  // ── Input section ───────────────────────────────────────────────────────
+  inputSection: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '0px',
+  },
   textarea: {
     width: '100%',
-    minHeight: '120px',
+    minHeight: '100px',
     background: cssVar('surface'),
     border: `1px solid ${cssVar('border')}`,
-    borderRadius: '6px',
+    borderRadius: '8px',
     color: cssVar('text'),
     fontFamily: 'inherit',
     fontSize: '13px',
-    lineHeight: '1.5',
-    padding: '10px',
+    lineHeight: '1.55',
+    padding: '10px 12px',
     resize: 'vertical' as const,
     outline: 'none',
     boxSizing: 'border-box' as const,
+    transition: 'border-color 0.15s, box-shadow 0.15s',
   },
-
-  // Refine button (full-width amber)
+  inputActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    marginTop: '8px',
+  },
   refineButton: {
-    width: '100%',
-    padding: '10px',
-    borderRadius: '6px',
+    flex: 1,
+    padding: '9px 16px',
+    borderRadius: '8px',
     background: cssVar('amber'),
     color: cssVar('amber-text'),
     fontWeight: 600,
-    fontSize: '13px',
+    fontSize: '12px',
+    letterSpacing: '0.01em',
     border: 'none',
     cursor: 'pointer',
-    transition: 'opacity 0.15s',
-    marginTop: '8px',
+    transition: 'all 0.15s ease-out',
+    boxShadow: `0 1px 2px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.15)`,
   },
-
-  // "Grab from page" text link
-  grabLink: {
+  grabButton: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
     background: 'none',
-    border: 'none',
+    border: `1px solid ${cssVar('border')}`,
+    borderRadius: '8px',
     color: cssVar('muted'),
     fontSize: '11px',
+    fontWeight: 500,
     cursor: 'pointer',
-    padding: '4px 0',
-    marginTop: '4px',
-    textAlign: 'center' as const,
-    width: '100%',
-    transition: 'color 0.15s',
+    padding: '8px 10px',
+    transition: 'all 0.15s ease-out',
+    whiteSpace: 'nowrap' as const,
+    flexShrink: 0,
   },
 
-  // Style chips container
+  // ── Style chips ─────────────────────────────────────────────────────────
   chipRow: {
     display: 'flex',
     flexWrap: 'wrap' as const,
     gap: '4px',
   },
 
-  // Tab row (horizontal scrollable)
-  tabRow: {
-    display: 'flex',
-    gap: '2px',
-    overflowX: 'auto' as const,
-    flexShrink: 0,
-    paddingBottom: '1px',
-  },
-
-  // Output container (takes remaining space)
+  // ── Output section ──────────────────────────────────────────────────────
   outputSection: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column' as const,
     minHeight: 0,
   },
+
+  // Segmented tab control
+  tabBar: {
+    display: 'flex',
+    background: cssVar('surface'),
+    borderRadius: '8px',
+    padding: '3px',
+    gap: '2px',
+    flexShrink: 0,
+    border: `1px solid ${cssVar('border-subtle')}`,
+  },
+
   outputArea: {
     flex: 1,
-    padding: '10px',
-    background: cssVar('surface'),
-    borderRadius: '6px',
-    border: `1px solid ${cssVar('border')}`,
+    padding: '12px',
+    background: cssVar('surface-alt'),
+    borderRadius: '8px',
+    border: `1px solid ${cssVar('border-subtle')}`,
     fontSize: '13px',
-    lineHeight: '1.6',
+    lineHeight: '1.65',
     color: cssVar('text'),
     whiteSpace: 'pre-wrap' as const,
     wordBreak: 'break-word' as const,
     overflowY: 'auto' as const,
-    marginTop: '6px',
-    minHeight: '120px',
+    marginTop: '8px',
+    minHeight: '140px',
   },
 
   // Blinking cursor for streaming
@@ -189,12 +231,13 @@ const S = {
     marginLeft: '1px',
     animation: 'mdr-blink 0.8s step-end infinite',
     verticalAlign: 'text-bottom',
+    borderRadius: '1px',
   },
 
-  // Sticky bottom bar
+  // ── Footer ──────────────────────────────────────────────────────────────
   footer: {
-    padding: '12px',
-    borderTop: `1px solid ${cssVar('border')}`,
+    padding: '12px 16px',
+    borderTop: `1px solid ${cssVar('border-subtle')}`,
     display: 'flex',
     gap: '8px',
     flexShrink: 0,
@@ -202,62 +245,145 @@ const S = {
   },
   footerSecondary: {
     flex: 1,
-    padding: '9px',
-    borderRadius: '6px',
-    background: cssVar('surface'),
-    color: cssVar('text'),
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '5px',
+    padding: '9px 12px',
+    borderRadius: '8px',
+    background: 'transparent',
+    color: cssVar('text-secondary'),
     fontWeight: 500,
     fontSize: '12px',
     border: `1px solid ${cssVar('border')}`,
     cursor: 'pointer',
-    transition: 'background 0.15s',
+    transition: 'all 0.15s ease-out',
   },
   footerPrimary: {
     flex: 1,
-    padding: '9px',
-    borderRadius: '6px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '5px',
+    padding: '9px 12px',
+    borderRadius: '8px',
     background: cssVar('amber'),
     color: cssVar('amber-text'),
     fontWeight: 600,
     fontSize: '12px',
     border: 'none',
     cursor: 'pointer',
-    transition: 'opacity 0.15s',
+    transition: 'all 0.15s ease-out',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.12)',
   },
 } as const;
 
 // Dynamic style helpers (depend on state)
-function chipStyle(isActive: boolean): React.CSSProperties {
+function chipStyle(isActive: boolean, isProofread: boolean = false): React.CSSProperties {
+  if (isActive) {
+    return {
+      padding: '3px 10px',
+      borderRadius: '999px',
+      background: cssVar('amber'),
+      color: cssVar('amber-text'),
+      fontSize: '11px',
+      fontWeight: 600,
+      border: `1px solid ${cssVar('amber')}`,
+      cursor: 'pointer',
+      transition: 'all 0.15s ease-out',
+      whiteSpace: 'nowrap' as const,
+    };
+  }
+
+  // Proofread Only: visually distinct when inactive
+  if (isProofread) {
+    return {
+      padding: '3px 10px',
+      borderRadius: '999px',
+      background: cssVar('amber-subtle'),
+      color: cssVar('muted'),
+      fontSize: '11px',
+      fontWeight: 500,
+      border: `1px dashed ${cssVar('border')}`,
+      cursor: 'pointer',
+      transition: 'all 0.15s ease-out',
+      whiteSpace: 'nowrap' as const,
+    };
+  }
+
   return {
-    padding: '4px 10px',
+    padding: '3px 10px',
     borderRadius: '999px',
-    background: isActive ? cssVar('amber') : 'transparent',
-    color: isActive ? cssVar('amber-text') : cssVar('muted'),
-    fontSize: '12px',
-    fontWeight: isActive ? 600 : 400,
-    border: `1px solid ${isActive ? cssVar('amber') : cssVar('border')}`,
+    background: 'transparent',
+    color: cssVar('muted'),
+    fontSize: '11px',
+    fontWeight: 400,
+    border: `1px solid ${cssVar('border')}`,
     cursor: 'pointer',
-    transition: 'all 0.15s',
+    transition: 'all 0.15s ease-out',
     whiteSpace: 'nowrap' as const,
   };
 }
 
 function tabStyle(isActive: boolean): React.CSSProperties {
   return {
-    padding: '5px 8px',
-    background: 'transparent',
-    color: isActive ? cssVar('amber') : cssVar('muted'),
+    flex: 1,
+    padding: '5px 6px',
+    background: isActive ? cssVar('surface-alt') : 'transparent',
+    color: isActive ? cssVar('text') : cssVar('muted'),
     fontWeight: isActive ? 600 : 400,
-    fontSize: '12px',
+    fontSize: '11px',
     border: 'none',
-    borderBottom: isActive ? `2px solid ${cssVar('amber')}` : '2px solid transparent',
+    borderRadius: '5px',
     cursor: 'pointer',
     whiteSpace: 'nowrap' as const,
-    transition: 'all 0.15s',
+    transition: 'all 0.15s ease-out',
     display: 'flex',
     alignItems: 'center',
-    gap: '4px',
+    justifyContent: 'center',
+    gap: '3px',
+    boxShadow: isActive ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
   };
+}
+
+// ── SVG Icons (inline, tiny) ──────────────────────────────────────────────
+
+function GrabIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+      <path
+        d="M3 4h10M3 8h10M3 12h6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function CopyIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+      <rect x="5" y="5" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M3 11V3h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M3 8.5l3.5 3.5L13 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function InsertIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+      <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -487,47 +613,54 @@ export function SidePanel() {
 
   return (
     <div style={S.container}>
-      {/* Header */}
+      {/* ── Header ─────────────────────────────────────────────────────── */}
       <div style={S.header}>
-        <span style={S.headerTitle}>Macro Doc Refinement.</span>
-        <span style={S.headerModel}>{modelLabel}</span>
+        <span style={S.headerTitle}>MDR</span>
+        <span style={S.modelBadge}>{modelLabel}</span>
+        <div style={S.headerGradientBorder} />
       </div>
 
-      {/* Scrollable body */}
+      {/* ── Scrollable body ────────────────────────────────────────────── */}
       <div style={S.body}>
-        {/* INPUT section */}
-        <div>
-          <div style={S.sectionLabel}>Input</div>
+        {/* INPUT section - no label, the textarea speaks for itself */}
+        <div style={S.inputSection}>
           <textarea
             style={S.textarea}
-            placeholder="Type or paste text..."
+            placeholder="Paste or type text to refine..."
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
           />
-          <button
-            style={{
-              ...S.refineButton,
-              opacity: canRefine ? 1 : 0.5,
-              cursor: canRefine ? 'pointer' : 'not-allowed',
-            }}
-            onClick={() => startRefinement()}
-            disabled={!canRefine}
-          >
-            {isStreaming ? 'Refining...' : 'Refine'}
-          </button>
-          <button style={S.grabLink} onClick={grabFromPage}>
-            Grab from page
-          </button>
+          <div style={S.inputActions}>
+            <button
+              style={{
+                ...S.refineButton,
+                opacity: canRefine ? 1 : 0.45,
+                cursor: canRefine ? 'pointer' : 'not-allowed',
+              }}
+              onClick={() => startRefinement()}
+              disabled={!canRefine}
+            >
+              {isStreaming ? 'Refining...' : 'Refine Text'}
+            </button>
+            <button style={S.grabButton} onClick={grabFromPage}>
+              <GrabIcon />
+              Grab
+            </button>
+          </div>
         </div>
 
-        {/* STYLE section */}
-        <div>
-          <div style={S.sectionLabel}>Style</div>
+        {/* ── STYLE section with divider-label ─────────────────────────── */}
+        <div style={{ marginTop: '12px' }}>
+          <div style={S.sectionDivider}>
+            <div style={S.sectionDividerLine} />
+            <span style={S.sectionDividerLabel}>Style</span>
+            <div style={S.sectionDividerLine} />
+          </div>
           <div style={S.chipRow}>
             {styleProfiles.map((profile) => (
               <button
                 key={profile.id}
-                style={chipStyle(profile.isActive)}
+                style={chipStyle(profile.isActive, profile.name === 'Proofread Only')}
                 onClick={() => handleToggleProfile(profile.id)}
               >
                 {profile.name}
@@ -536,10 +669,16 @@ export function SidePanel() {
           </div>
         </div>
 
-        {/* OUTPUT section */}
-        <div style={S.outputSection}>
-          <div style={S.sectionLabel}>Output</div>
-          <div style={S.tabRow}>
+        {/* ── OUTPUT section (hero area) ───────────────────────────────── */}
+        <div style={{ ...S.outputSection, marginTop: '12px' }}>
+          <div style={S.sectionDivider}>
+            <div style={S.sectionDividerLine} />
+            <span style={S.sectionDividerLabel}>Output</span>
+            <div style={S.sectionDividerLine} />
+          </div>
+
+          {/* Segmented tab control */}
+          <div style={S.tabBar}>
             {TABS.map((tab) => (
               <button
                 key={tab.key}
@@ -550,10 +689,11 @@ export function SidePanel() {
                 {tab.charLimit != null && (
                   <span
                     style={{
-                      fontSize: '9px',
-                      opacity: 0.6,
+                      fontSize: '8px',
+                      opacity: 0.5,
                       fontWeight: 400,
-                      marginLeft: '2px',
+                      fontFamily: "'SF Mono', 'Menlo', monospace",
+                      marginLeft: '1px',
                     }}
                   >
                     {tab.charLimit}
@@ -565,8 +705,8 @@ export function SidePanel() {
 
           <div ref={outputRef} style={S.outputArea}>
             {outputs[activeTab] || (
-              <span style={{ color: cssVar('muted'), fontSize: '12px' }}>
-                Refined text will appear here...
+              <span style={{ color: cssVar('dim'), fontSize: '12px', fontStyle: 'italic' }}>
+                Refined text appears here...
               </span>
             )}
             {isStreaming && <span style={S.cursor} />}
@@ -574,29 +714,31 @@ export function SidePanel() {
         </div>
       </div>
 
-      {/* Sticky bottom bar */}
+      {/* ── Footer ─────────────────────────────────────────────────────── */}
       <div style={S.footer}>
         <button
           style={{
             ...S.footerSecondary,
-            opacity: hasOutput ? 1 : 0.4,
+            opacity: hasOutput ? 1 : 0.35,
             cursor: hasOutput ? 'pointer' : 'not-allowed',
           }}
           onClick={copyOutput}
           disabled={!hasOutput}
         >
-          {copyFeedback ? 'Copied' : 'Copy'}
+          {copyFeedback ? <CheckIcon /> : <CopyIcon />}
+          {copyFeedback ? 'Copied' : 'Copy Text'}
         </button>
         <button
           style={{
             ...S.footerPrimary,
-            opacity: hasOutput ? 1 : 0.4,
+            opacity: hasOutput ? 1 : 0.35,
             cursor: hasOutput ? 'pointer' : 'not-allowed',
           }}
           onClick={insertIntoPage}
           disabled={!hasOutput}
         >
-          Insert into page
+          <InsertIcon />
+          Insert into Page
         </button>
       </div>
     </div>
