@@ -80,19 +80,20 @@ export function Popup() {
             width: '28px',
             height: '28px',
             borderRadius: '6px',
-            background: COLORS.amber,
+            background: '#0A0A0A',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontWeight: 800,
-            fontSize: '16px',
-            color: '#1A1816',
+            fontWeight: 500,
+            fontSize: '18px',
+            color: '#F0F0F0',
+            border: '1px solid #333',
           }}
         >
-          M
+          m
         </div>
         <div>
-          <div style={{ fontSize: '14px', fontWeight: 700, color: COLORS.amber }}>
+          <div style={{ fontSize: '14px', fontWeight: 600, color: COLORS.textPrimary }}>
             Macro Doc Refinement
           </div>
           <div style={{ fontSize: '11px', color: COLORS.textMuted }}>
