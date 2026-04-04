@@ -409,6 +409,7 @@ export function SidePanel() {
   const outputRef = useRef<HTMLDivElement>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load initial data from storage
   useEffect(() => {
@@ -473,6 +474,9 @@ export function SidePanel() {
       }
       if (syncTimerRef.current) {
         clearTimeout(syncTimerRef.current);
+      }
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
       }
     };
   }, []);
@@ -563,6 +567,35 @@ export function SidePanel() {
     [inputText, isStreaming, activeTab],
   );
 
+  // ── Auto-refine on input change (1.5s debounce) ───────────────────────
+
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+
+    if (!inputText.trim()) {
+      // Clear all outputs when input is emptied
+      setOutputs({ refined: '', linkedin: '', x: '', instagram: '', substack: '' });
+      return;
+    }
+
+    if (isStreaming) return;
+
+    debounceTimerRef.current = setTimeout(() => {
+      debounceTimerRef.current = null;
+      startRefinement();
+    }, 1500);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+    };
+  }, [inputText, isStreaming, startRefinement]);
+
   // ── Tab switch: auto-generate if output empty ──────────────────────────
 
   const handleTabSwitch = useCallback(
@@ -641,7 +674,16 @@ export function SidePanel() {
   const handleToggleProfile = useCallback(async (profileId: string) => {
     const updated = await toggleProfile(profileId);
     setProfiles(updated);
-  }, []);
+
+    // Re-trigger refinement immediately when style changes (deliberate action)
+    if (inputText.trim() && !isStreaming) {
+      setOutputs((prev) => ({ ...prev, [activeTab]: '' }));
+      // Small delay to let state settle before starting refinement
+      setTimeout(() => {
+        startRefinement();
+      }, 100);
+    }
+  }, [inputText, isStreaming, activeTab, startRefinement]);
 
   // ── Open MDR website to trigger sync ────────────────────────────────
 
@@ -694,11 +736,15 @@ export function SidePanel() {
               onClick={() => startRefinement()}
               disabled={!canRefine}
             >
-              {isStreaming ? 'Refining...' : 'Refine Text'}
+              {isStreaming ? 'Refining...' : 'Refine'}
             </button>
-            <button style={S.grabButton} onClick={grabFromPage}>
+            <button
+              style={S.grabButton}
+              onClick={grabFromPage}
+              title="Get text from the active element on the current page"
+            >
               <GrabIcon />
-              Grab
+              From Page
             </button>
           </div>
         </div>
