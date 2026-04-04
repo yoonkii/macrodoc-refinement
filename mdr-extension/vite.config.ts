@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   base: './',
   build: {
+    modulePreload: false,
     rollupOptions: {
       input: {
         popup: resolve(__dirname, 'popup.html'),
