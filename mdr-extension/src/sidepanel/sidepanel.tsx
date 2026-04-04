@@ -410,6 +410,8 @@ export function SidePanel() {
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startRefinementRef = useRef<(targetTab?: TabKey) => void>(() => {});
+  const isStreamingRef = useRef(false);
 
   // Load initial data from storage
   useEffect(() => {
@@ -567,7 +569,14 @@ export function SidePanel() {
     [inputText, isStreaming, activeTab],
   );
 
+  // Keep refs in sync so the debounce effect can use latest values
+  // without re-running when they change
+  useEffect(() => { startRefinementRef.current = startRefinement; }, [startRefinement]);
+  useEffect(() => { isStreamingRef.current = isStreaming; }, [isStreaming]);
+
   // ── Auto-refine on input change (1.5s debounce) ───────────────────────
+  // Only depends on inputText — uses refs for startRefinement and isStreaming
+  // to avoid re-triggering when streaming state changes.
 
   useEffect(() => {
     if (debounceTimerRef.current) {
@@ -576,16 +585,15 @@ export function SidePanel() {
     }
 
     if (!inputText.trim()) {
-      // Clear all outputs when input is emptied
       setOutputs({ refined: '', linkedin: '', x: '', instagram: '', substack: '' });
       return;
     }
 
-    if (isStreaming) return;
-
     debounceTimerRef.current = setTimeout(() => {
       debounceTimerRef.current = null;
-      startRefinement();
+      if (!isStreamingRef.current) {
+        startRefinementRef.current();
+      }
     }, 1500);
 
     return () => {
@@ -594,7 +602,7 @@ export function SidePanel() {
         debounceTimerRef.current = null;
       }
     };
-  }, [inputText, isStreaming, startRefinement]);
+  }, [inputText]);
 
   // ── Tab switch: auto-generate if output empty ──────────────────────────
 
@@ -675,15 +683,13 @@ export function SidePanel() {
     const updated = await toggleProfile(profileId);
     setProfiles(updated);
 
-    // Re-trigger refinement immediately when style changes (deliberate action)
-    if (inputText.trim() && !isStreaming) {
-      setOutputs((prev) => ({ ...prev, [activeTab]: '' }));
-      // Small delay to let state settle before starting refinement
-      setTimeout(() => {
-        startRefinement();
-      }, 100);
-    }
-  }, [inputText, isStreaming, activeTab, startRefinement]);
+    // Re-trigger refinement when style changes (deliberate action)
+    setTimeout(() => {
+      if (!isStreamingRef.current) {
+        startRefinementRef.current();
+      }
+    }, 150);
+  }, []);
 
   // ── Open MDR website to trigger sync ────────────────────────────────
 
