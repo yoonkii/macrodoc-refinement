@@ -2,15 +2,7 @@ import { useEffect, useState } from 'react';
 import { getModelConfig } from '../storage/model-config';
 import { PROVIDERS } from '../shared/constants';
 
-const COLORS = {
-  bg: '#050505',
-  surface: '#0D1117',
-  border: '#21262D',
-  amber: '#E8A838',
-  textPrimary: '#E6EDF3',
-  textSecondary: '#8B949E',
-  textMuted: '#484F58',
-} as const;
+function v(name: string) { return `var(--mdr-${name})`; }
 
 export function Popup() {
   const [modelLabel, setModelLabel] = useState('Loading...');
@@ -29,13 +21,10 @@ export function Popup() {
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tab?.id) {
-        // Must call sidePanel.open directly from popup (user gesture context)
-        // Sending via runtime.sendMessage loses the gesture context
         await chrome.sidePanel.open({ tabId: tab.id });
         opened = true;
       }
     } catch {
-      // Fallback: try windowId-based open
       try {
         const win = await chrome.windows.getCurrent();
         if (win.id) {
@@ -60,9 +49,9 @@ export function Popup() {
     <div
       style={{
         width: '280px',
-        background: COLORS.bg,
-        color: COLORS.textPrimary,
-        fontFamily: 'system-ui, -apple-system, sans-serif',
+        background: v('bg'),
+        color: v('text'),
+        fontFamily: "-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif",
         padding: '16px',
       }}
     >
@@ -71,7 +60,7 @@ export function Popup() {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
+          gap: '10px',
           marginBottom: '16px',
         }}
       >
@@ -80,23 +69,24 @@ export function Popup() {
             width: '28px',
             height: '28px',
             borderRadius: '6px',
-            background: '#0A0A0A',
+            background: v('icon-bg'),
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontWeight: 500,
             fontSize: '18px',
-            color: '#F0F0F0',
-            border: '1px solid #333',
+            color: v('icon-text'),
+            border: `1px solid ${v('icon-border')}`,
+            flexShrink: 0,
           }}
         >
           m
         </div>
         <div>
-          <div style={{ fontSize: '14px', fontWeight: 600, color: COLORS.textPrimary }}>
+          <div style={{ fontSize: '14px', fontWeight: 600, color: v('text') }}>
             Macro Doc Refinement
           </div>
-          <div style={{ fontSize: '11px', color: COLORS.textMuted }}>
+          <div style={{ fontSize: '11px', color: v('muted') }}>
             Text refinement everywhere
           </div>
         </div>
@@ -105,19 +95,19 @@ export function Popup() {
       {/* Model status */}
       <div
         style={{
-          padding: '10px',
-          background: COLORS.surface,
+          padding: '10px 12px',
+          background: v('surface'),
           borderRadius: '8px',
-          border: `1px solid ${COLORS.border}`,
+          border: `1px solid ${v('border')}`,
           marginBottom: '12px',
         }}
       >
-        <div style={{ fontSize: '11px', color: COLORS.textSecondary, marginBottom: '2px' }}>
+        <div style={{ fontSize: '11px', color: v('muted'), marginBottom: '2px' }}>
           Using
         </div>
-        <div style={{ fontSize: '13px', fontWeight: 600 }}>{modelLabel}</div>
+        <div style={{ fontSize: '13px', fontWeight: 600, color: v('text') }}>{modelLabel}</div>
         {providerDesc && (
-          <div style={{ fontSize: '11px', color: COLORS.textMuted, marginTop: '2px' }}>
+          <div style={{ fontSize: '11px', color: v('muted'), marginTop: '2px' }}>
             {providerDesc}
           </div>
         )}
@@ -130,8 +120,8 @@ export function Popup() {
           width: '100%',
           padding: '10px',
           borderRadius: '8px',
-          background: COLORS.amber,
-          color: '#1A1816',
+          background: v('amber'),
+          color: v('amber-text'),
           fontWeight: 600,
           fontSize: '13px',
           border: 'none',
@@ -148,11 +138,11 @@ export function Popup() {
           width: '100%',
           padding: '10px',
           borderRadius: '8px',
-          background: COLORS.surface,
-          color: COLORS.textPrimary,
+          background: v('surface'),
+          color: v('text'),
           fontWeight: 500,
           fontSize: '13px',
-          border: `1px solid ${COLORS.border}`,
+          border: `1px solid ${v('border')}`,
           cursor: 'pointer',
         }}
       >

@@ -9,26 +9,16 @@ import {
 import { getSettings, setSettings } from '../storage/settings';
 import { getStyleProfiles, resetStyleProfiles } from '../storage/style-profiles';
 
-// ── Styles ─────────────────────────────────────────────────────────────────
+// ── CSS variable helper ───────────────────────────────────────────────────
 
-const COLORS = {
-  bg: '#050505',
-  surface: '#0D1117',
-  surfaceHover: '#161B22',
-  border: '#21262D',
-  amber: '#E8A838',
-  amberDim: '#C8892A',
-  textPrimary: '#E6EDF3',
-  textSecondary: '#8B949E',
-  textMuted: '#484F58',
-  red: '#F85149',
-  green: '#3FB950',
-} as const;
+function v(name: string) { return `var(--mdr-${name})`; }
+
+// ── Shared styles ─────────────────────────────────────────────────────────
 
 const cardStyle: React.CSSProperties = {
-  background: COLORS.surface,
+  background: v('surface'),
   borderRadius: '12px',
-  border: `1px solid ${COLORS.border}`,
+  border: `1px solid ${v('border')}`,
   padding: '20px',
   marginBottom: '16px',
 };
@@ -36,7 +26,7 @@ const cardStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize: '12px',
   fontWeight: 600,
-  color: COLORS.textSecondary,
+  color: v('text-secondary'),
   marginBottom: '6px',
   display: 'block',
 };
@@ -45,9 +35,9 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '10px 12px',
   borderRadius: '8px',
-  background: COLORS.bg,
-  border: `1px solid ${COLORS.border}`,
-  color: COLORS.textPrimary,
+  background: v('bg'),
+  border: `1px solid ${v('border')}`,
+  color: v('text'),
   fontFamily: 'inherit',
   fontSize: '13px',
   outline: 'none',
@@ -69,18 +59,18 @@ const buttonStyle = (variant: 'primary' | 'secondary' | 'danger'): React.CSSProp
   cursor: 'pointer',
   transition: 'opacity 0.15s',
   ...(variant === 'primary' && {
-    background: COLORS.amber,
-    color: '#1A1816',
+    background: v('amber'),
+    color: v('amber-text'),
   }),
   ...(variant === 'secondary' && {
-    background: COLORS.surface,
-    color: COLORS.textPrimary,
-    border: `1px solid ${COLORS.border}`,
+    background: v('surface-hover'),
+    color: v('text'),
+    border: `1px solid ${v('border')}`,
   }),
   ...(variant === 'danger' && {
     background: 'transparent',
-    color: COLORS.red,
-    border: `1px solid ${COLORS.red}`,
+    color: v('red'),
+    border: `1px solid ${v('red')}`,
   }),
 });
 
@@ -154,10 +144,7 @@ export function Options() {
     setTestMessage('Testing connection...');
 
     try {
-      // Build a minimal test prompt
       const testPrompt = 'Say "ok" and nothing else.';
-
-      // Use dynamic import pattern to test with the BYOM API
       const { generateWithProvider } = await import('../shared/byom-api');
       const response = await generateWithProvider(testPrompt, { provider, model, apiKey });
 
@@ -215,7 +202,6 @@ export function Options() {
         if (!Array.isArray(parsed)) {
           throw new Error('File must contain a JSON array');
         }
-        // Validate each profile has required fields
         for (const item of parsed) {
           if (
             typeof item !== 'object' ||
@@ -251,37 +237,29 @@ export function Options() {
     <div
       style={{
         minHeight: '100vh',
-        background: COLORS.bg,
-        color: COLORS.textPrimary,
-        fontFamily: 'system-ui, -apple-system, sans-serif',
+        background: v('bg'),
+        color: v('text'),
+        fontFamily: "-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif",
         padding: '32px',
       }}
     >
       <div style={{ maxWidth: '560px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ marginBottom: '32px' }}>
-          <h1
-            style={{
-              fontSize: '24px',
-              fontWeight: 700,
-              color: COLORS.amber,
-              margin: 0,
-            }}
-          >
+          <h1 style={{ fontSize: '24px', fontWeight: 700, color: v('text'), margin: 0 }}>
             MDR Settings
           </h1>
-          <p style={{ fontSize: '13px', color: COLORS.textSecondary, marginTop: '4px' }}>
+          <p style={{ fontSize: '13px', color: v('muted'), marginTop: '4px' }}>
             Configure your AI provider, model, and extension preferences.
           </p>
         </div>
 
         {/* AI Provider Card */}
         <div style={cardStyle}>
-          <h2 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 16px 0' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 16px 0', color: v('text') }}>
             AI Provider
           </h2>
 
-          {/* Provider selector */}
           <div style={{ marginBottom: '12px' }}>
             <label style={labelStyle}>Provider</label>
             <select
@@ -297,7 +275,6 @@ export function Options() {
             </select>
           </div>
 
-          {/* Model selector */}
           <div style={{ marginBottom: '12px' }}>
             <label style={labelStyle}>Model</label>
             <select
@@ -313,7 +290,6 @@ export function Options() {
             </select>
           </div>
 
-          {/* API Key (only for non-default providers) */}
           {provider !== 'default' && (
             <div style={{ marginBottom: '12px' }}>
               <label style={labelStyle}>API Key</label>
@@ -324,21 +300,13 @@ export function Options() {
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
               />
-              <p
-                style={{
-                  fontSize: '11px',
-                  color: COLORS.textMuted,
-                  marginTop: '6px',
-                  lineHeight: '1.5',
-                }}
-              >
+              <p style={{ fontSize: '11px', color: v('muted'), marginTop: '6px', lineHeight: '1.5' }}>
                 Your API key is stored locally in Chrome and never sent to our servers.
                 Requests go directly from your browser to the provider.
               </p>
             </div>
           )}
 
-          {/* Test + Save buttons */}
           <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
             <button style={buttonStyle('secondary')} onClick={handleTestConnection}>
               {testStatus === 'testing' ? 'Testing...' : 'Test Connection'}
@@ -348,13 +316,12 @@ export function Options() {
             </button>
           </div>
 
-          {/* Test status message */}
           {testMessage && (
             <p
               style={{
                 fontSize: '12px',
                 marginTop: '10px',
-                color: testStatus === 'success' ? COLORS.green : testStatus === 'error' ? COLORS.red : COLORS.textSecondary,
+                color: testStatus === 'success' ? v('green') : testStatus === 'error' ? v('red') : v('muted'),
               }}
             >
               {testMessage}
@@ -364,7 +331,7 @@ export function Options() {
 
         {/* Extension Settings Card */}
         <div style={cardStyle}>
-          <h2 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 16px 0' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 16px 0', color: v('text') }}>
             Extension
           </h2>
 
@@ -375,13 +342,14 @@ export function Options() {
               gap: '10px',
               cursor: 'pointer',
               fontSize: '13px',
+              color: v('text'),
             }}
           >
             <input
               type="checkbox"
               checked={inlineWidgetEnabled}
               onChange={(e) => setInlineWidgetEnabled(e.target.checked)}
-              style={{ accentColor: COLORS.amber, width: '16px', height: '16px' }}
+              style={{ accentColor: v('amber'), width: '16px', height: '16px' }}
             />
             Show inline "Refine" button on text selection
           </label>
@@ -389,7 +357,7 @@ export function Options() {
 
         {/* Style Profiles Card */}
         <div style={cardStyle}>
-          <h2 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 16px 0' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 16px 0', color: v('text') }}>
             Style Profiles
           </h2>
 
@@ -404,11 +372,11 @@ export function Options() {
         </div>
 
         {/* Danger zone */}
-        <div style={{ ...cardStyle, borderColor: COLORS.red }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 8px 0', color: COLORS.red }}>
+        <div style={{ ...cardStyle, borderColor: v('red') }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 8px 0', color: v('red') }}>
             Danger Zone
           </h2>
-          <p style={{ fontSize: '12px', color: COLORS.textSecondary, marginBottom: '12px' }}>
+          <p style={{ fontSize: '12px', color: v('muted'), marginBottom: '12px' }}>
             Reset all settings and style profiles to defaults. This cannot be undone.
           </p>
           <button style={buttonStyle('danger')} onClick={handleReset}>
