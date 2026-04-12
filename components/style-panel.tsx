@@ -57,19 +57,20 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
   const isProofreadActive = proofreadProfile?.isActive ?? false;
 
   // Auto-toggle logic: mutual exclusivity between Proofread Only and personality modes.
-  // Also sets tone based on active personality or resets to 0.0 for proofread-only.
+  // Uses setProfileActive (idempotent) instead of toggleProfileActive to prevent
+  // infinite loops when multiple StylePanel instances are mounted (mobile + desktop).
   useEffect(() => {
     if (!proofreadProfile) return;
 
     // If any personality mode is active, deactivate Proofread Only
     if (anyPersonalityActive && isProofreadActive) {
-      store.toggleProfileActive(proofreadProfile.id);
+      store.setProfileActive(proofreadProfile.id, false);
       return;
     }
 
     // If no personality mode is active and Proofread Only is not active, activate it
     if (!anyPersonalityActive && !isProofreadActive) {
-      store.toggleProfileActive(proofreadProfile.id);
+      store.setProfileActive(proofreadProfile.id, true);
     }
   }, [anyPersonalityActive, isProofreadActive, proofreadProfile, store]);
 
@@ -92,14 +93,14 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
       // Turning ON proofread — turn off all personality modes
       for (const p of personalityProfiles) {
         if (p.isActive) {
-          store.toggleProfileActive(p.id);
+          store.setProfileActive(p.id, false);
         }
       }
       // The useEffect will auto-activate proofread since no personality is active
     } else {
       // Turning OFF proofread — the useEffect will re-activate it if no personality is active
       // So this is effectively a no-op unless a personality gets toggled on
-      store.toggleProfileActive(proofreadProfile.id);
+      store.setProfileActive(proofreadProfile.id, false);
     }
   }, [isProofreadActive, proofreadProfile, personalityProfiles, store]);
 
