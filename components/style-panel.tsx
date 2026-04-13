@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2, Download, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStyleProfilesStore } from "@/lib/stores/style-profiles";
-import { useToneStore } from "@/lib/stores/tone";
 import type { StyleProfile } from "@/lib/types";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,6 @@ interface StylePanelProps {
 export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) {
   const router = useRouter();
   const store = useStyleProfilesStore();
-  const toneStore = useToneStore();
   const profiles = store.profiles;
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -56,34 +54,9 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
   const anyPersonalityActive = personalityProfiles.some((p) => p.isActive);
   const isProofreadActive = proofreadProfile?.isActive ?? false;
 
-  // Auto-toggle logic: mutual exclusivity between Proofread Only and personality modes.
-  // Uses setProfileActive (idempotent) instead of toggleProfileActive to prevent
-  // infinite loops when multiple StylePanel instances are mounted (mobile + desktop).
-  useEffect(() => {
-    if (!proofreadProfile) return;
-
-    // If any personality mode is active, deactivate Proofread Only
-    if (anyPersonalityActive && isProofreadActive) {
-      store.setProfileActive(proofreadProfile.id, false);
-      return;
-    }
-
-    // If no personality mode is active and Proofread Only is not active, activate it
-    if (!anyPersonalityActive && !isProofreadActive) {
-      store.setProfileActive(proofreadProfile.id, true);
-    }
-  }, [anyPersonalityActive, isProofreadActive, proofreadProfile, store]);
-
-  // Sync tone value to the active personality's toneBaseline
-  useEffect(() => {
-    const activePersonality = personalityProfiles.find((p) => p.isActive);
-    if (activePersonality) {
-      toneStore.setTone(activePersonality.toneBaseline);
-    } else {
-      // No personality active (proofread-only mode) => balanced tone
-      toneStore.setTone(0.0);
-    }
-  }, [personalityProfiles, toneStore]);
+  // NOTE: Auto-toggle (Proofread ↔ personality mutual exclusivity) and tone sync
+  // effects live in page.tsx — NOT here. StylePanel can be mounted multiple times
+  // (desktop sidebar + mobile drawer), and duplicate effects cause infinite loops.
 
   // When user manually toggles Proofread Only ON, turn off all personality modes
   const handleProofreadToggle = useCallback(() => {
@@ -96,10 +69,10 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
           store.setProfileActive(p.id, false);
         }
       }
-      // The useEffect will auto-activate proofread since no personality is active
+      // The useEffect in page.tsx will auto-activate proofread since no personality is active
     } else {
-      // Turning OFF proofread — the useEffect will re-activate it if no personality is active
-      // So this is effectively a no-op unless a personality gets toggled on
+      // Turning OFF proofread — the useEffect in page.tsx will re-activate it
+      // if no personality is active. So this is effectively a no-op unless a personality gets toggled on.
       store.setProfileActive(proofreadProfile.id, false);
     }
   }, [isProofreadActive, proofreadProfile, personalityProfiles, store]);
@@ -219,7 +192,10 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
           <ProfileSection
             title="Personality Modes"
             profiles={sortedPersonalityProfiles}
-            onToggle={(id) => store.toggleProfileActive(id)}
+            onToggle={(id) => {
+              const p = profiles.find((pr) => pr.id === id);
+              if (p) store.setProfileActive(id, !p.isActive);
+            }}
             onEdit={handleEdit}
             onDelete={handleDeleteRequest}
           />
@@ -230,7 +206,10 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
           <ProfileSection
             title="Custom"
             profiles={customProfiles}
-            onToggle={(id) => store.toggleProfileActive(id)}
+            onToggle={(id) => {
+              const p = profiles.find((pr) => pr.id === id);
+              if (p) store.setProfileActive(id, !p.isActive);
+            }}
             onEdit={handleEdit}
             onDelete={handleDeleteRequest}
           />
