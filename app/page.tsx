@@ -15,6 +15,8 @@ import { StylePanel } from "@/components/style-panel";
 import { GlassCard } from "@/components/glass-card";
 import Link from "next/link";
 
+const PROOFREAD_ONLY_NAME = "Proofread Only";
+
 export default function Home() {
   const [showStylePanel, setShowStylePanel] = useState(true);
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
@@ -23,6 +25,37 @@ export default function Home() {
   const toneStore = useToneStore();
   const styleProfileStore = useStyleProfilesStore();
   const activeProfiles = selectActiveProfiles(styleProfileStore);
+  const profiles = styleProfileStore.profiles;
+
+  // ── Global side-effects (run ONCE here, NOT in StylePanel which mounts 2x) ──
+
+  // Auto-toggle: mutual exclusivity between Proofread Only and personality modes.
+  useEffect(() => {
+    const proofreadProfile = profiles.find((p) => p.name === PROOFREAD_ONLY_NAME);
+    if (!proofreadProfile) return;
+
+    const personalityActive = profiles.some(
+      (p) => p.type === "personality" && p.name !== PROOFREAD_ONLY_NAME && p.isActive,
+    );
+
+    if (personalityActive && proofreadProfile.isActive) {
+      styleProfileStore.setProfileActive(proofreadProfile.id, false);
+    } else if (!personalityActive && !proofreadProfile.isActive) {
+      styleProfileStore.setProfileActive(proofreadProfile.id, true);
+    }
+  }, [profiles, styleProfileStore]);
+
+  // Tone sync: set tone slider to the active personality's baseline
+  useEffect(() => {
+    const activePersonality = profiles.find(
+      (p) => p.type === "personality" && p.name !== PROOFREAD_ONLY_NAME && p.isActive,
+    );
+    if (activePersonality) {
+      toneStore.setTone(activePersonality.toneBaseline);
+    } else {
+      toneStore.setTone(0.0);
+    }
+  }, [profiles, toneStore]);
 
   // Sync active profiles and tone value to the text refine store
   const updateActiveProfiles = textRefineStore.updateActiveProfiles;

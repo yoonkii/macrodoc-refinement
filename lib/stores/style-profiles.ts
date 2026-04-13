@@ -21,6 +21,7 @@ export interface StyleProfilesActions {
   updateProfile: (updatedProfile: StyleProfile) => void;
   deleteProfile: (id: string) => void;
   toggleProfileActive: (id: string) => void;
+  setProfileActive: (id: string, isActive: boolean) => void;
   reorderProfiles: (oldIndex: number, newIndex: number) => void;
 }
 
@@ -69,6 +70,18 @@ export const useStyleProfilesStore = create<StyleProfilesStore>()(
             p.id === id ? { ...p, isActive: !p.isActive } : p,
           ),
         }));
+      },
+
+      setProfileActive(id: string, isActive: boolean): void {
+        set((state) => {
+          const profile = state.profiles.find((p) => p.id === id);
+          if (!profile || profile.isActive === isActive) return state;
+          return {
+            profiles: state.profiles.map((p) =>
+              p.id === id ? { ...p, isActive } : p,
+            ),
+          };
+        });
       },
 
       reorderProfiles(oldIndex: number, newIndex: number): void {
