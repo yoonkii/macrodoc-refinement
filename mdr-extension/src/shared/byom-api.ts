@@ -227,11 +227,14 @@ async function* streamGoogle(
   config: ModelConfig,
   signal: AbortSignal,
 ): AsyncGenerator<string> {
-  const url = `${GEMINI_API_BASE}/${config.model}:streamGenerateContent?alt=sse&key=${config.apiKey}`;
+  const url = `${GEMINI_API_BASE}/${config.model}:streamGenerateContent?alt=sse`;
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': config.apiKey,
+    },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
@@ -261,11 +264,14 @@ async function generateGoogle(
   prompt: string,
   config: ModelConfig,
 ): Promise<string> {
-  const url = `${GEMINI_API_BASE}/${config.model}:generateContent?key=${config.apiKey}`;
+  const url = `${GEMINI_API_BASE}/${config.model}:generateContent`;
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': config.apiKey,
+    },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
