@@ -37,14 +37,24 @@ export interface MultiPostActions {
 
 export type MultiPostStore = MultiPostState & MultiPostActions;
 
+// Internal mutable state kept outside the store to avoid re-renders.
+let multiPostAbortController: AbortController | null = null;
+
+function cancelActiveMultiPost(): void {
+  if (multiPostAbortController) {
+    multiPostAbortController.abort();
+    multiPostAbortController = null;
+  }
+}
+
 /**
  * Generate multi-post content via BYOM provider. The prompt asks for JSON
  * output with keys: linkedin, x, instagram, substack. We parse the raw
  * text response to extract those keys.
  */
-async function generateMultiPostViaBYOM(prompt: string): Promise<MultiPostResult> {
+async function generateMultiPostViaBYOM(prompt: string, signal?: AbortSignal): Promise<MultiPostResult> {
   const modelConfig = useModelConfigStore.getState().config;
-  const rawText = await generateWithProvider(prompt, modelConfig);
+  const rawText = await generateWithProvider(prompt, modelConfig, signal);
 
   // Extract JSON from the response — the model may wrap it in markdown code fences
   let jsonStr = rawText.trim();
@@ -84,6 +94,13 @@ export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
   ): Promise<void> {
     if (inputText.length === 0) return;
 
+    // Cancel any in-flight request before starting a new one
+    cancelActiveMultiPost();
+
+    const controller = new AbortController();
+    multiPostAbortController = controller;
+    const { signal } = controller;
+
     set({
       isGenerating: true,
       platformOutputs: {},
@@ -101,8 +118,11 @@ export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
       const modelConfig = useModelConfigStore.getState().config;
       const useDefault = modelConfig.provider === 'default' || !modelConfig.apiKey.trim();
       const results = useDefault
-        ? await generateMultiPost(prompt)
-        : await generateMultiPostViaBYOM(prompt);
+        ? await generateMultiPost(prompt, signal)
+        : await generateMultiPostViaBYOM(prompt, signal);
+
+      // If aborted between completion and state update, bail out
+      if (signal.aborted) return;
 
       const outputs: Record<string, string> = { ...results };
       const errors: Record<string, boolean> = {};
@@ -117,6 +137,10 @@ export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
 
       set({ platformOutputs: outputs, platformErrors: errors });
     } catch (error: unknown) {
+      // Aborted requests are not errors
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      if (signal.aborted) return;
+
       const message =
         error instanceof Error
           ? error.message.replace(/^Exception: /, '')
@@ -130,7 +154,12 @@ export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
 
       set({ errorMessage: message, platformErrors: errors });
     } finally {
-      set({ isGenerating: false });
+      if (!signal.aborted) {
+        set({ isGenerating: false });
+      }
+      if (multiPostAbortController === controller) {
+        multiPostAbortController = null;
+      }
     }
   },
 

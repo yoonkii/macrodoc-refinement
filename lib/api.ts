@@ -145,11 +145,13 @@ export interface MultiPostResult {
  */
 export async function generateMultiPost(
   prompt: string,
+  signal?: AbortSignal,
 ): Promise<MultiPostResult> {
   const response = await fetch(`${PROXY_URL}/api/multi-post`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt, model: MODEL_NAME }),
+    signal,
   });
 
   if (!response.ok) {

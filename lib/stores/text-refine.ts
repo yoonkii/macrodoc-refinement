@@ -202,9 +202,9 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
 
     updateActiveProfiles(profiles: StyleProfile[]): void {
       const currentKey = get()
-        .activeProfiles.map((p) => `${p.id}:${p.isActive}`)
+        .activeProfiles.map((p) => `${p.id}:${p.isActive}:${p.instructions}`)
         .join();
-      const newKey = profiles.map((p) => `${p.id}:${p.isActive}`).join();
+      const newKey = profiles.map((p) => `${p.id}:${p.isActive}:${p.instructions}`).join();
 
       if (currentKey !== newKey) {
         set({ activeProfiles: [...profiles] });

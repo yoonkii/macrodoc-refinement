@@ -47,15 +47,16 @@ export async function* streamWithProvider(
 export async function generateWithProvider(
   prompt: string,
   config: ModelConfig,
+  signal?: AbortSignal,
 ): Promise<string> {
   switch (config.provider) {
     case 'openai':
     case 'grok':
-      return generateOpenAICompatible(prompt, config);
+      return generateOpenAICompatible(prompt, config, signal);
     case 'anthropic':
-      return generateAnthropic(prompt, config);
+      return generateAnthropic(prompt, config, signal);
     case 'google':
-      return generateGoogle(prompt, config);
+      return generateGoogle(prompt, config, signal);
     default:
       throw new Error(`Unknown provider: ${config.provider}`);
   }
@@ -107,6 +108,7 @@ async function* streamOpenAICompatible(
 async function generateOpenAICompatible(
   prompt: string,
   config: ModelConfig,
+  signal?: AbortSignal,
 ): Promise<string> {
   const baseUrl = getOpenAIBaseUrl(config.provider);
 
@@ -120,6 +122,7 @@ async function generateOpenAICompatible(
       model: config.model,
       messages: [{ role: 'user', content: prompt }],
     }),
+    signal,
   });
 
   if (!response.ok) {
@@ -183,6 +186,7 @@ async function* streamAnthropic(
 async function generateAnthropic(
   prompt: string,
   config: ModelConfig,
+  signal?: AbortSignal,
 ): Promise<string> {
   const response = await fetch(ANTHROPIC_API_URL, {
     method: 'POST',
@@ -197,6 +201,7 @@ async function generateAnthropic(
       max_tokens: ANTHROPIC_MAX_TOKENS,
       messages: [{ role: 'user', content: prompt }],
     }),
+    signal,
   });
 
   if (!response.ok) {
@@ -227,11 +232,14 @@ async function* streamGoogle(
   config: ModelConfig,
   signal: AbortSignal,
 ): AsyncGenerator<string> {
-  const url = `${GEMINI_API_BASE}/${config.model}:streamGenerateContent?alt=sse&key=${config.apiKey}`;
+  const url = `${GEMINI_API_BASE}/${config.model}:streamGenerateContent?alt=sse`;
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': config.apiKey,
+    },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
@@ -260,12 +268,16 @@ async function* streamGoogle(
 async function generateGoogle(
   prompt: string,
   config: ModelConfig,
+  signal?: AbortSignal,
 ): Promise<string> {
-  const url = `${GEMINI_API_BASE}/${config.model}:generateContent?key=${config.apiKey}`;
+  const url = `${GEMINI_API_BASE}/${config.model}:generateContent`;
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': config.apiKey,
+    },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
@@ -273,6 +285,7 @@ async function generateGoogle(
         maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS,
       },
     }),
+    signal,
   });
 
   if (!response.ok) {

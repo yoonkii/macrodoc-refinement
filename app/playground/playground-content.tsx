@@ -6,7 +6,9 @@ import { ArrowLeft, Plus, Trash2, Loader2, Play } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useStyleProfilesStore } from "@/lib/stores/style-profiles";
+import { useModelConfigStore } from "@/lib/stores/model-config";
 import { streamRefine } from "@/lib/api";
+import { streamWithProvider } from "@/lib/byom-api";
 import { buildRefinementPrompt } from "@/lib/prompt-builder";
 import type { StyleProfile, ProfileType } from "@/lib/types";
 import { GlassCard } from "@/components/glass-card";
@@ -102,7 +104,13 @@ export function PlaygroundContent() {
     });
 
     try {
-      for await (const chunk of streamRefine(prompt, controller.signal)) {
+      const modelConfig = useModelConfigStore.getState().config;
+      const useDefault = modelConfig.provider === 'default' || !modelConfig.apiKey.trim();
+      const stream = useDefault
+        ? streamRefine(prompt, controller.signal)
+        : streamWithProvider(prompt, modelConfig, controller.signal);
+
+      for await (const chunk of stream) {
         if (controller.signal.aborted) return;
         setTestOutput((prev) => prev + chunk);
       }
