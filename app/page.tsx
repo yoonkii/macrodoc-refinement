@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { X, FlaskConical, Settings } from "lucide-react";
 import { useTextRefineStore } from "@/lib/stores/text-refine";
 import { useToneStore } from "@/lib/stores/tone";
@@ -45,15 +45,26 @@ export default function Home() {
     }
   }, [profiles, styleProfileStore]);
 
-  // Tone sync: set tone slider to the active personality's baseline
+  // Tone sync: apply a personality's baseline tone ONLY at the moment the active
+  // personality changes. Applying it on every profiles change (or resetting to 0
+  // when none is active) would clobber manual slider adjustments, since this
+  // effect also re-runs when the tone store updates. Tracking the previous active
+  // personality id lets manual tweaks persist until a different personality is
+  // selected.
+  const prevActivePersonalityIdRef = useRef<string | null>(null);
   useEffect(() => {
     const activePersonality = profiles.find(
       (p) => p.type === "personality" && p.name !== PROOFREAD_ONLY_NAME && p.isActive,
     );
+    const activeId = activePersonality?.id ?? null;
+
+    if (activeId === prevActivePersonalityIdRef.current) return;
+    prevActivePersonalityIdRef.current = activeId;
+
+    // Only overwrite the tone when a personality becomes active. Deactivating a
+    // personality leaves the current tone untouched so manual choices survive.
     if (activePersonality) {
       toneStore.setTone(activePersonality.toneBaseline);
-    } else {
-      toneStore.setTone(0.0);
     }
   }, [profiles, toneStore]);
 
@@ -110,7 +121,7 @@ export default function Home() {
 
         {/* Shared legal disclaimer */}
         <p className="shrink-0 text-[10px] text-[var(--text-muted)] text-center px-4 py-1">
-          Text is processed by Google&apos;s Gemini AI. By using this service, you confirm you are at least 18 years of age.
+          Text is processed by your selected AI provider (Google&apos;s Gemini by default). By using this service, you confirm you are at least 18 years of age.
         </p>
 
         {/* Footer */}

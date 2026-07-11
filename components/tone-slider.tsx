@@ -22,29 +22,31 @@ export function ToneSlider() {
 
   return (
     <div className="flex flex-col gap-2 py-2">
-      {/* Tier labels row — abbreviated for narrow sidebar */}
-      <div className="flex justify-between px-0.5">
+      {/* Detent tick marks — one per tier; the full label renders below the
+          slider, so ticks stay legible in the narrow sidebar */}
+      <div className="flex justify-between px-1" aria-hidden="true">
         {TONE_TIER_ENTRIES.map((tier) => {
           const isActive = snappedValue === tier.value;
           return (
             <span
               key={tier.value}
+              title={tier.label}
               className={cn(
-                "font-mono text-[10px] tracking-wide text-center flex-1 truncate transition-colors duration-150",
+                "w-px rounded-full transition-all duration-150",
                 isActive
-                  ? "text-[var(--amber)] font-semibold"
-                  : "text-[var(--text-muted)] font-normal"
+                  ? "h-2 bg-[var(--amber)] shadow-[0_0_6px_var(--amber)]"
+                  : "h-1.5 bg-[var(--text-dim,var(--text-muted))]"
               )}
-            >
-              {tier.short}
-            </span>
+            />
           );
         })}
       </div>
 
       {/* Slider */}
       <Slider
-        value={toneStore.toneValue}
+        // Base UI's Slider takes array-based value state; a scalar makes the
+        // wrapper fall back to a two-thumb [min,max] range.
+        value={[toneStore.toneValue]}
         onValueChange={(val) => {
           const numVal = Array.isArray(val) ? val[0] : val;
           toneStore.setTone(numVal);
@@ -52,6 +54,11 @@ export function ToneSlider() {
         min={-1}
         max={1}
         step={0.5}
+        // Center alignment positions the thumb by pure percentage. The wrapper's
+        // default "edge" alignment measures track geometry on mount and lands on
+        // NaN% here (the panel can be laid out after the first measure), so we
+        // override it.
+        thumbAlignment="center"
         className="[&_[data-slot=slider-track]]:bg-[var(--border)] [&_[data-slot=slider-range]]:bg-[var(--amber)] [&_[data-slot=slider-thumb]]:bg-[var(--amber)] [&_[data-slot=slider-thumb]]:border-[var(--amber)] [&_[data-slot=slider-thumb]]:shadow-[0_0_0_4px_rgba(232,168,56,0.15),0_0_16px_rgba(232,168,56,0.25)]"
       />
 

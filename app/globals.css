@@ -32,15 +32,17 @@
 }
 
 .dark {
-  --bg: #050505;
-  --surface: rgba(8,8,10,0.85);
-  --elevated: rgba(255,255,255,0.04);
-  --hover: rgba(255,255,255,0.06);
-  --border: rgba(255,255,255,0.05);
-  --border-hover: rgba(255,255,255,0.09);
-  --text: rgba(255,255,255,0.92);
-  --text-muted: rgba(255,255,255,0.55);
-  --text-dim: rgba(255,255,255,0.30);
+  /* Aligned with DESIGN.md dark tokens — warm off-white text (NOT pure white),
+     cool OLED surfaces. */
+  --bg: #0A0A0C;
+  --surface: #141416;
+  --elevated: #1C1C1F;
+  --hover: #2A2A2E;
+  --border: #2A2A2E;
+  --border-hover: #3A3A3E;
+  --text: #F0EDE8;
+  --text-muted: #8A847C;
+  --text-dim: #5A5650;
 }
 
 /* ────────────────────────────────────────────────────
@@ -149,9 +151,9 @@ body {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --font-heading: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), var(--font-geist-mono), ui-monospace, monospace;
+  --font-heading: var(--font-space-grotesk), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);

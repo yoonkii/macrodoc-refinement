@@ -90,7 +90,7 @@ export function AppHeader({
           <h1
             onClick={handleTitleClick}
             className={cn(
-              "text-base font-semibold tracking-tight text-[var(--text)] select-none cursor-default",
+              "text-base font-display font-bold tracking-tight text-[var(--text)] select-none cursor-default",
               theme === "mdr" && "font-mono uppercase tracking-widest"
             )}
             style={theme === "mdr" ? { textShadow: "0 0 8px rgba(124, 184, 124, 0.5)" } : undefined}
