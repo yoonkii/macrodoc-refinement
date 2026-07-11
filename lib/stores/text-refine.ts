@@ -61,11 +61,27 @@ function activeProfilesKey(profiles: StyleProfile[]): string {
   );
 }
 
+/**
+ * Toggle the `data-streaming` attribute on <html> so the ambient amber glow can
+ * react to an in-flight refinement (see globals.css). Guarded for SSR.
+ */
+function setStreamingFlag(active: boolean): void {
+  if (typeof document === 'undefined') return;
+  if (active) {
+    document.documentElement.setAttribute('data-streaming', '');
+  } else {
+    document.documentElement.removeAttribute('data-streaming');
+  }
+}
+
 function cancelActiveStream(): void {
   if (abortController) {
     abortController.abort();
     abortController = null;
   }
+  // Every abort is an exit path — clear the ambient glow. If a new stream is
+  // starting it will re-set the flag immediately after this returns.
+  setStreamingFlag(false);
 }
 
 export const useTextRefineStore = create<TextRefineStore>((set, get) => {
@@ -91,6 +107,7 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
       refinedText: '',
       errorMessage: '',
     });
+    setStreamingFlag(true);
 
     const { activeProfiles, toneValue } = get();
 
@@ -140,8 +157,11 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
         error instanceof Error ? error.message : 'An unexpected error occurred';
       set({ errorMessage: `Error: ${message}` });
     } finally {
+      // Only the currently-owning stream clears state/glow. An aborted stream
+      // was superseded by a newer one that already owns the flag.
       if (!signal.aborted) {
         set({ isProcessing: false, isStreaming: false });
+        setStreamingFlag(false);
       }
       if (abortController?.signal === signal) {
         abortController = null;

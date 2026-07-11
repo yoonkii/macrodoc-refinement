@@ -79,17 +79,33 @@ body {
   position: relative;
 }
 
+/* Stream-reactive amber orb intensity. Registered so it can be transitioned;
+   raised while a refinement is streaming (see html[data-streaming] below). */
+@property --orb-amber {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0.03;
+}
+
 /* Ambient mesh gradient (amber + teal orbs) — dark mode only */
 .dark body::before {
   content: '';
   position: fixed;
   inset: 0;
+  --orb-amber: 0.03;
   background:
-    radial-gradient(ellipse 800px 600px at 15% 20%, rgba(232,168,56,0.03), transparent),
+    radial-gradient(ellipse 800px 600px at 15% 20%, rgba(232,168,56,var(--orb-amber)), transparent),
     radial-gradient(ellipse 600px 800px at 85% 75%, rgba(56,200,200,0.03), transparent),
-    radial-gradient(ellipse 500px 500px at 50% 50%, rgba(232,168,56,0.015), transparent);
+    radial-gradient(ellipse 500px 500px at 50% 50%, rgba(232,168,56,calc(var(--orb-amber) * 0.5)), transparent);
   pointer-events: none;
   z-index: 0;
+  transition: --orb-amber 2s ease;
+}
+
+/* While streaming, brighten the amber orb layer (~2x). data-streaming is set on
+   the <html> element, which also carries the .dark theme class. */
+.dark[data-streaming] body::before {
+  --orb-amber: 0.06;
 }
 
 /* MDR ambient effect — CRT scanlines */
@@ -134,12 +150,12 @@ body {
   animation: crt-on 0.4s ease-out;
 }
 
-/* Film grain overlay — dark mode only */
+/* Film grain overlay — dark mode only (0.03 per DESIGN.md film-grain spec) */
 .dark body::after {
   content: '';
   position: fixed;
   inset: 0;
-  opacity: 0.02;
+  opacity: 0.03;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 256px 256px;
@@ -299,5 +315,76 @@ body {
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* ────────────────────────────────────────────────────
+   Streaming polish — token bloom, REC pulse, take settle
+   ──────────────────────────────────────────────────── */
+
+/* One-shot per-word reveal: fade in over ~150ms, amber glow decays over ~600ms */
+@keyframes token-bloom {
+  0% {
+    opacity: 0;
+    text-shadow: 0 0 8px var(--amber);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    text-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+
+.token-bloom {
+  animation: token-bloom 600ms ease-out both;
+}
+
+/* Subtle amber dot pulse for REC / streaming indicators — no scale, no bounce */
+@keyframes rec-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.pulse-dot {
+  animation: rec-pulse 1.2s ease-in-out infinite;
+}
+
+/* One-shot "take finished" settle: a single amber-dim breathe on the container */
+@keyframes take-settle {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+  40% {
+    box-shadow: 0 0 16px 1px var(--amber-dim);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+
+.take-settle {
+  animation: take-settle 400ms ease-out;
+}
+
+/* Respect reduced-motion: disable bloom/pulse/glow and the ambient raise */
+@media (prefers-reduced-motion: reduce) {
+  .token-bloom {
+    animation: none;
+  }
+  .pulse-dot {
+    animation: none;
+  }
+  .take-settle {
+    animation: none;
+  }
+  .dark body::before {
+    transition: none;
   }
 }
