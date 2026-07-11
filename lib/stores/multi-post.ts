@@ -11,6 +11,7 @@ import { generateWithProvider } from '../byom-api';
 import { PLATFORM_KEYS } from '../types';
 import type { StyleProfile } from '../types';
 import { buildMultiPostPrompt } from '../prompt-builder';
+import { captureScrubbedError } from '../sentry';
 import { useModelConfigStore } from './model-config';
 
 export interface MultiPostState {
@@ -141,6 +142,8 @@ export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
       if (error instanceof DOMException && error.name === 'AbortError') return;
       if (signal.aborted) return;
 
+      captureScrubbedError(error, 'multi-post.generateAll');
+
       const message =
         error instanceof Error
           ? error.message.replace(/^Exception: /, '')
@@ -171,8 +174,18 @@ export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
   ): Promise<void> {
     if (inputText.length === 0) return;
 
-    // Clear the error for this platform before retrying
+    // Share the abort slot with generateAll: a newer generateAll() (or another
+    // retry) aborts this in-flight retry so a stale response can never overwrite
+    // fresher output, and vice versa.
+    cancelActiveMultiPost();
+    const controller = new AbortController();
+    multiPostAbortController = controller;
+    const { signal } = controller;
+
+    // Clear the error for this platform and reflect that generation is underway
     set((state) => ({
+      isGenerating: true,
+      errorMessage: '',
       platformErrors: { ...state.platformErrors, [platform]: false },
     }));
 
@@ -186,8 +199,11 @@ export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
       const modelConfig = useModelConfigStore.getState().config;
       const useDefault = modelConfig.provider === 'default' || !modelConfig.apiKey.trim();
       const results = useDefault
-        ? await generateMultiPost(prompt)
-        : await generateMultiPostViaBYOM(prompt);
+        ? await generateMultiPost(prompt, signal)
+        : await generateMultiPostViaBYOM(prompt, signal);
+
+      // A newer request superseded this retry — discard its result.
+      if (signal.aborted) return;
 
       set((state) => {
         const updatedOutputs = { ...state.platformOutputs };
@@ -220,10 +236,22 @@ export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
           platformErrors: updatedErrors,
         };
       });
-    } catch {
+    } catch (error: unknown) {
+      // Aborted retries are not errors — a newer request took over.
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      if (signal.aborted) return;
+
+      captureScrubbedError(error, 'multi-post.retryPlatform');
       set((state) => ({
         platformErrors: { ...state.platformErrors, [platform]: true },
       }));
+    } finally {
+      if (!signal.aborted) {
+        set({ isGenerating: false });
+      }
+      if (multiPostAbortController === controller) {
+        multiPostAbortController = null;
+      }
     }
   },
 

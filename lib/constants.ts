@@ -271,6 +271,12 @@ export const PROXY_URL: string =
   process.env.NEXT_PUBLIC_PROXY_URL ??
   'https://gemini-proxy-725459007829.us-central1.run.app';
 
+/**
+ * Canonical production origin — the custom domain on the proxy's CORS
+ * allowlist. Single source of truth for metadataBase, robots, and sitemap.
+ */
+export const SITE_URL = 'https://macrodocrefinement.com';
+
 export const MAX_CHARACTERS = 10_000;
 
 export const MODEL_NAME = 'gemini-3.1-flash-lite-preview';

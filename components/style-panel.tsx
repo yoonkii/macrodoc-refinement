@@ -8,6 +8,7 @@ import { useStyleProfilesStore } from "@/lib/stores/style-profiles";
 import type { StyleProfile } from "@/lib/types";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { ToneSlider } from "@/components/tone-slider";
 import {
   Dialog,
   DialogContent,
@@ -155,6 +156,14 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
   const content = (
     <>
       <div className="flex-1 overflow-y-auto px-2 py-3">
+        {/* Tone spectrum — always visible at the top of the panel */}
+        <div className="mx-2 mb-4">
+          <p className="px-1 mb-1 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-dim,var(--text-muted))]">
+            Tone
+          </p>
+          <ToneSlider />
+        </div>
+
         {/* Proofread Only — standalone toggle at top */}
         {proofreadProfile && (
           <div className="mx-2 mb-4">
@@ -163,7 +172,7 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
                 "flex items-center justify-between px-3 py-2 rounded-lg border transition-colors duration-200",
                 isProofreadActive
                   ? "border-[var(--amber)]/30 bg-[var(--amber)]/5"
-                  : "border-white/[0.05] bg-white/[0.02] hover:border-white/[0.09]"
+                  : "border-[var(--border)] bg-[var(--elevated)] hover:border-[var(--border-hover,var(--border))]"
               )}
             >
               <span
@@ -275,7 +284,7 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
             <button
               type="button"
               onClick={handleExport}
-              className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--amber)] hover:bg-white/[0.05] transition-colors"
+              className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--amber)] hover:bg-[var(--hover)] transition-colors"
               aria-label="Export profiles"
               title="Export profiles"
             >
@@ -284,7 +293,7 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--amber)] hover:bg-white/[0.05] transition-colors"
+              className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--amber)] hover:bg-[var(--hover)] transition-colors"
               aria-label="Import profiles"
               title="Import profiles"
             >
@@ -353,7 +362,7 @@ interface ProfileTileProps {
 
 function ProfileTile({ profile, onToggle, onEdit, onDelete }: ProfileTileProps) {
   return (
-    <div className="mx-2 mb-2 rounded-lg border border-white/[0.05] hover:border-white/[0.09] bg-white/[0.02] transition-colors duration-300">
+    <div className="mx-2 mb-2 rounded-lg border border-[var(--border)] hover:border-[var(--border-hover,var(--border))] bg-[var(--elevated)] transition-colors duration-300">
       {/* Name + switch row */}
       <div className="flex items-center gap-2 px-3 pt-3 pb-1">
         <div className="flex items-center gap-2 flex-1 min-w-0">

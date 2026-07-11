@@ -154,7 +154,7 @@ export default function SettingsPage() {
               <p className="text-xs text-[var(--text-muted)] leading-relaxed">
                 Your API key is saved in your browser&apos;s local storage only and is never transmitted to our servers.
                 When using your own model, all API calls go directly from your browser to the AI provider (OpenAI, Anthropic, Google, or xAI).
-                We have no access to your keys, your prompts, or your usage data.
+                We don&apos;t store your keys or your prompts. We do collect anonymous usage and error diagnostics to help keep the app reliable.
               </p>
             </div>
           </div>
@@ -174,7 +174,7 @@ export default function SettingsPage() {
             </p>
             {config.provider === "default" ? (
               <p className="text-xs text-[var(--text-muted)] mt-1">
-                Free tier (30 requests/minute shared limit)
+                Free tier (15 requests/minute shared limit)
               </p>
             ) : !config.apiKey.trim() ? (
               <p className="text-xs text-[var(--error)] mt-1">
@@ -373,7 +373,7 @@ export default function SettingsPage() {
               Rate Limits
             </h2>
             <p className="text-sm text-[var(--text)]">
-              The free tier uses our shared Gemini Flash Lite instance (30
+              The free tier uses our shared Gemini Flash Lite instance (15
               requests/minute).
             </p>
             <p className="text-sm text-[var(--text)]">

@@ -9,6 +9,7 @@ import { streamRefine } from '../api';
 import { streamWithProvider } from '../byom-api';
 import { MAX_CHARACTERS } from '../constants';
 import { buildRefinementPrompt } from '../prompt-builder';
+import { captureScrubbedError } from '../sentry';
 import { useModelConfigStore } from './model-config';
 import type { StyleProfile } from '../types';
 
@@ -39,6 +40,26 @@ export type TextRefineStore = TextRefineState & TextRefineActions;
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
 let abortController: AbortController | null = null;
+
+/**
+ * Stable change-detection key for the active profile set. Includes every field
+ * that affects the built prompt — instructions, few-shot examples, name, char
+ * limit, and tone baseline — so that editing a profile's few-shots (or any of
+ * those fields) re-triggers a refinement instead of being silently ignored.
+ */
+function activeProfilesKey(profiles: StyleProfile[]): string {
+  return JSON.stringify(
+    profiles.map((profile) => ({
+      id: profile.id,
+      isActive: profile.isActive,
+      name: profile.name,
+      instructions: profile.instructions,
+      fewShots: profile.fewShots,
+      charLimit: profile.charLimit,
+      toneBaseline: profile.toneBaseline,
+    })),
+  );
+}
 
 function cancelActiveStream(): void {
   if (abortController) {
@@ -112,6 +133,8 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
       // Aborted streams are not errors
       if (error instanceof DOMException && error.name === 'AbortError') return;
       if (signal.aborted) return;
+
+      captureScrubbedError(error, 'text-refine.processText');
 
       const message =
         error instanceof Error ? error.message : 'An unexpected error occurred';
@@ -201,10 +224,8 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
     },
 
     updateActiveProfiles(profiles: StyleProfile[]): void {
-      const currentKey = get()
-        .activeProfiles.map((p) => `${p.id}:${p.isActive}:${p.instructions}`)
-        .join();
-      const newKey = profiles.map((p) => `${p.id}:${p.isActive}:${p.instructions}`).join();
+      const currentKey = activeProfilesKey(get().activeProfiles);
+      const newKey = activeProfilesKey(profiles);
 
       if (currentKey !== newKey) {
         set({ activeProfiles: [...profiles] });
