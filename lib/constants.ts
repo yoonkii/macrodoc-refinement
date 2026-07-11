@@ -279,6 +279,31 @@ export const SITE_URL = 'https://macrodocrefinement.com';
 
 export const MAX_CHARACTERS = 10_000;
 
+// ── First-run demo samples ──────────────────────────────────────────────────
+// Realistic rough drafts a user would actually paste in to refine. Kept
+// imperfect on purpose (filler words, lowercase, run-ons) so the refinement
+// has something visible to fix.
+
+export interface DemoSample {
+  label: string;
+  text: string;
+}
+
+export const DEMO_SAMPLES: DemoSample[] = [
+  {
+    label: 'Standup notes',
+    text: "yesterday i mostly poked at the login bug, still not fixed tbh the token refresh thing is weird. today im gonna keep digging and maybe pair with sam if hes around. no real blockers just the usual flaky CI.",
+  },
+  {
+    label: 'LinkedIn post',
+    text: "so we finally shipped the new dashboard after like 3 months of work. honestly it was a grind but i learned a ton, mostly that talking to actual users early saves you from building the wrong thing. really proud of what the team pulled off here.",
+  },
+  {
+    label: 'Warmer email',
+    text: "Hi, just following up since i havent heard back on my last email. i know youre swamped but i really need those Q3 numbers by friday or im stuck on the report. let me know if something's blocking it on your end. thanks.",
+  },
+];
+
 export const MODEL_NAME = 'gemini-3.1-flash-lite-preview';
 
 // ── BYOM Provider Metadata ─────────────────────────────────────────────────

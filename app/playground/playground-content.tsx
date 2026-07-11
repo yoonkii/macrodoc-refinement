@@ -12,7 +12,7 @@ import { streamWithProvider } from "@/lib/byom-api";
 import { buildRefinementPrompt } from "@/lib/prompt-builder";
 import type { StyleProfile, ProfileType } from "@/lib/types";
 import { GlassCard } from "@/components/glass-card";
-import { StreamingCursor } from "@/components/streaming-cursor";
+import { StreamingText, useTakeFinishedSettle } from "@/components/streaming-text";
 
 export function PlaygroundContent() {
   const router = useRouter();
@@ -33,6 +33,9 @@ export function PlaygroundContent() {
   const [testOutput, setTestOutput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+
+  // One-shot "take finished" settle on the preview container when a test ends.
+  const isSettling = useTakeFinishedSettle(isStreaming);
 
   // Load existing profile data when editing
   useEffect(() => {
@@ -331,20 +334,26 @@ export function PlaygroundContent() {
                 <label className="block text-sm font-medium text-[var(--text)] mb-1.5 shrink-0">
                   Preview
                 </label>
-              <div className="flex-1 min-h-0 rounded-md border border-[var(--border)] bg-[var(--bg)] overflow-auto">
+              <div
+                className={cn(
+                  "flex-1 min-h-0 rounded-md border border-[var(--border)] bg-[var(--bg)] overflow-auto",
+                  isSettling && "take-settle"
+                )}
+              >
                 {isStreaming && testOutput.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full p-4">
-                    <Loader2 className="size-5 text-[var(--amber)] animate-spin mb-3" />
-                    <p className="font-sans text-xs text-[var(--text-muted)] font-medium">
-                      Processing your text...
-                    </p>
+                  // Streaming but no text yet — keep the area ready, anchor a
+                  // mono status line to the bottom (no big centered spinner).
+                  <div className="h-full flex flex-col justify-end p-3">
+                    <div className="flex items-center gap-2">
+                      <span className="size-1.5 rounded-full bg-[var(--amber)] pulse-dot" />
+                      <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--amber)]">
+                        Take in progress&hellip;
+                      </span>
+                    </div>
                   </div>
                 ) : testOutput.length > 0 ? (
                   <div className="h-full overflow-y-auto p-3">
-                    <p className="font-sans text-sm text-[var(--text)] leading-relaxed whitespace-pre-wrap">
-                      {testOutput}
-                      {isStreaming && <StreamingCursor />}
-                    </p>
+                    <StreamingText text={testOutput} isStreaming={isStreaming} />
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full p-4">

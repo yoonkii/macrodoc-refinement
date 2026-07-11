@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { X, ClipboardPaste, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTextRefineStore } from "@/lib/stores/text-refine";
-import { MAX_CHARACTERS } from "@/lib/constants";
+import { MAX_CHARACTERS, DEMO_SAMPLES } from "@/lib/constants";
 import { CharCounter } from "@/components/char-counter";
 import { Button } from "@/components/ui/button";
 
@@ -46,16 +46,34 @@ export function InputPanel() {
     }
   }
 
+  function handleDemoSample(text: string) {
+    // Push into the store (the sync effect mirrors it into the uncontrolled
+    // textarea) and refine immediately, skipping the type-debounce.
+    store.setInputText(text);
+    if (textareaRef.current) {
+      textareaRef.current.value = text;
+    }
+    store.processNow();
+  }
+
   const charCount = store.inputText.length;
   const isEmpty = charCount === 0;
 
   return (
     <div className="flex flex-col h-full min-h-0 overflow-hidden">
       {/* Header — matches output panel tab bar height */}
-      <div className="shrink-0 flex items-center px-5 py-3 border-b border-[var(--border)]">
+      <div className="shrink-0 flex items-center gap-2 px-5 py-3 border-b border-[var(--border)]">
         <h2 className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-dim,var(--text-muted))]">
           Input Text
         </h2>
+        {store.isProcessing && (
+          <span className="flex items-center gap-1.5" aria-label="Recording">
+            <span className="size-1.5 rounded-full bg-[var(--amber)] pulse-dot" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--amber)]">
+              REC
+            </span>
+          </span>
+        )}
       </div>
 
       {/* Content area */}
@@ -85,6 +103,27 @@ export function InputPanel() {
             {charCount} / {MAX_CHARACTERS}
           </span>
         </div>
+
+        {/* First-run demo chips — only while the input is empty */}
+        {isEmpty && (
+          <div className="shrink-0 flex flex-wrap gap-2 pt-3">
+            {DEMO_SAMPLES.map((sample) => (
+              <button
+                key={sample.label}
+                type="button"
+                onClick={() => handleDemoSample(sample.text)}
+                className={cn(
+                  "font-mono text-[11px] uppercase tracking-[0.08em]",
+                  "px-2.5 py-1.5 rounded-md border border-[var(--border)]",
+                  "text-[var(--text-muted)] transition-colors duration-150",
+                  "hover:border-[var(--amber)]/50 hover:text-[var(--amber)]"
+                )}
+              >
+                {sample.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Action buttons */}
         <div className="shrink-0 flex items-center justify-between pt-3">
