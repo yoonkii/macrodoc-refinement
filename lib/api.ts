@@ -151,6 +151,19 @@ export async function generateBatch(prompt: string): Promise<string> {
     const errorBody = await response.json().catch(() => ({
       error: 'Unknown error',
     })) as Record<string, unknown>;
+
+    // Proxy budget guard: 503 with { error: 'budget_exceeded', scope, details }.
+    // Surface the human-readable `details` string as-is so the UI can show the
+    // friendly budget message. Guard defensively — the field may be missing.
+    if (response.status === 503 && errorBody['error'] === 'budget_exceeded') {
+      const details = errorBody['details'];
+      const friendly =
+        typeof details === 'string' && details.trim().length > 0
+          ? details
+          : 'Daily usage limit reached. Try again later, or add your own API key in Settings.';
+      throw new Error(friendly);
+    }
+
     throw new Error(
       `Generate failed: ${errorBody['error'] ?? response.statusText}`,
     );
