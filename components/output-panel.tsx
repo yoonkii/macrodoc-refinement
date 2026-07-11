@@ -8,6 +8,7 @@ import {
   Copy,
   Check,
   AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTextRefineStore } from "@/lib/stores/text-refine";
@@ -171,7 +172,7 @@ export function OutputPanel() {
                   "flex items-center gap-1.5",
                   isActive
                     ? "text-[var(--amber)]"
-                    : "text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-white/[0.03]"
+                    : "text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--hover)]"
                 )}
               >
                 {/* Platform color dot */}
@@ -217,7 +218,16 @@ export function OutputPanel() {
             platform={activeTab}
             output={multiPostStore.platformOutputs[activeTab] ?? ""}
             isGenerating={multiPostStore.isGenerating}
+            hasError={multiPostStore.platformErrors[activeTab] ?? false}
             onCopy={handleCopy}
+            onRetry={() =>
+              multiPostStore.retryPlatform(
+                activeTab,
+                store.inputText,
+                activeProfiles,
+                toneStore.toneValue,
+              )
+            }
           />
         )}
       </div>
@@ -357,19 +367,26 @@ interface PlatformTabContentProps {
   platform: PlatformKey;
   output: string;
   isGenerating: boolean;
+  hasError: boolean;
   onCopy: (text: string) => void;
+  onRetry: () => void;
 }
 
 function PlatformTabContent({
   platform,
   output,
   isGenerating,
+  hasError,
   onCopy,
+  onRetry,
 }: PlatformTabContentProps) {
   const meta = PLATFORM_META[platform];
   const hasContent = output.length > 0;
   const charCount = output.length;
   const isOverLimit = meta.charLimit > 0 && charCount > meta.charLimit;
+  // Only surface the error state when there is no content to show for this tab —
+  // a fresh retry that succeeds for other platforms shouldn't hide good output.
+  const showError = hasError && !hasContent && !isGenerating;
 
   return (
     <>
@@ -386,6 +403,22 @@ function PlatformTabContent({
             <p className="font-sans text-xs text-[var(--text-muted)] font-medium">
               Generating {meta.label} version...
             </p>
+          </div>
+        ) : showError ? (
+          <div className="flex flex-col items-center justify-center h-full p-4 bg-[var(--error-dim)] gap-3">
+            <AlertCircle className="size-7 text-[var(--error)]" />
+            <p className="font-sans text-xs text-[var(--text)] text-center max-w-[240px]">
+              We couldn&apos;t generate the {meta.label} version. This can happen
+              on a busy connection.
+            </p>
+            <button
+              type="button"
+              onClick={onRetry}
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[var(--amber)] text-[#1A1816] font-sans text-xs font-medium hover:bg-[var(--amber-hover)] transition-colors"
+            >
+              <RefreshCw className="size-3.5" />
+              Try Again
+            </button>
           </div>
         ) : hasContent ? (
           <div className="h-full overflow-y-auto p-3 pb-7">

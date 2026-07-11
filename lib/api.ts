@@ -5,6 +5,34 @@
 
 import { MODEL_NAME, PROXY_URL } from './constants';
 
+// ── Streaming inactivity watchdog ───────────────────────────────────────────
+
+/** Abort a stream if no chunk (including the first byte) arrives within this window. */
+const STREAM_INACTIVITY_TIMEOUT_MS = 30_000;
+
+/** User-facing message surfaced when the watchdog trips. */
+const STREAM_TIMEOUT_MESSAGE = 'Connection timed out — try again';
+
+/**
+ * Race a single `reader.read()` against an inactivity timeout. If no chunk
+ * arrives before `timeoutMs`, reject with a friendly timeout error so a stalled
+ * connection surfaces instead of hanging the spinner forever.
+ */
+async function readWithTimeout<T>(
+  reader: ReadableStreamDefaultReader<T>,
+  timeoutMs: number,
+): Promise<ReadableStreamReadResult<T>> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(STREAM_TIMEOUT_MESSAGE)), timeoutMs);
+  });
+  try {
+    return await Promise.race([reader.read(), timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // ── Streaming refinement ────────────────────────────────────────────────────
 
 /**
@@ -42,7 +70,7 @@ export async function* streamRefine(
 
   try {
     while (true) {
-      const { done, value } = await reader.read();
+      const { done, value } = await readWithTimeout(reader, STREAM_INACTIVITY_TIMEOUT_MS);
       if (done) break;
 
       buffer += decoder.decode(value, { stream: true });
@@ -94,7 +122,14 @@ export async function* streamRefine(
       }
     }
   } finally {
-    reader.releaseLock();
+    // On a watchdog timeout the read() promise is still outstanding, so cancel
+    // before releasing the lock (releaseLock throws while a read is pending).
+    await reader.cancel().catch(() => {});
+    try {
+      reader.releaseLock();
+    } catch {
+      // Reader was already released — safe to ignore.
+    }
   }
 }
 
