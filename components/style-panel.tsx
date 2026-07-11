@@ -2,9 +2,10 @@
 
 import { useState, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, Download, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, Download, Upload, AudioWaveform } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStyleProfilesStore } from "@/lib/stores/style-profiles";
+import { useVoiceCloneStore } from "@/lib/stores/voice-clone";
 import type { StyleProfile } from "@/lib/types";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,10 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
   const router = useRouter();
   const store = useStyleProfilesStore();
   const profiles = store.profiles;
+  const openVoiceDialog = useVoiceCloneStore((s) => s.openDialog);
+
+  // The single learned profile this flow manages (if one exists yet).
+  const learnedProfile = profiles.find((p) => p.type === "learned");
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingProfile, setDeletingProfile] = useState<StyleProfile | null>(
@@ -210,6 +215,30 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
           />
         )}
 
+        {/* Clone My Voice — entry point to the voice-clone flow */}
+        <div className="mx-2 mb-2">
+          <p className="px-1 mt-5 mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-dim,var(--text-muted))]">
+            Custom Styles
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              onNavigate?.();
+              openVoiceDialog();
+            }}
+            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 h-10 rounded-full border border-[var(--amber)] text-[var(--amber)] font-sans text-sm font-medium hover:bg-[var(--amber)] hover:text-[#1A1816] transition-colors"
+          >
+            <AudioWaveform className="size-4" />
+            {learnedProfile ? "My Voice" : "Clone My Voice"}
+            {learnedProfile?.isActive && (
+              <span
+                className="size-1.5 rounded-full bg-[var(--teal)]"
+                aria-label="active"
+              />
+            )}
+          </button>
+        </div>
+
         {/* Custom profiles */}
         {customProfiles.length > 0 && (
           <ProfileSection
@@ -369,6 +398,11 @@ function ProfileTile({ profile, onToggle, onEdit, onDelete }: ProfileTileProps) 
           <span className="text-sm font-medium text-[var(--text)] truncate">
             {profile.name}
           </span>
+          {profile.type === "learned" && (
+            <span className="shrink-0 font-mono text-[10px] font-medium px-2 py-0.5 rounded-md bg-[var(--amber-dim)] text-[var(--amber)]/70 uppercase tracking-[0.08em]">
+              Learned
+            </span>
+          )}
           {profile.charLimit != null && (
             <span className="shrink-0 font-mono text-[10px] font-medium px-2 py-0.5 rounded-md bg-[var(--amber-dim)] text-[var(--amber)]">
               {profile.charLimit}

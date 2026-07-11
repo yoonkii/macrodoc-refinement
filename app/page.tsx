@@ -13,6 +13,7 @@ import { InputPanel } from "@/components/input-panel";
 import { OutputPanel } from "@/components/output-panel";
 import { StylePanel } from "@/components/style-panel";
 import { GlassCard } from "@/components/glass-card";
+import { VoiceCloneDialog } from "@/components/voice-clone-dialog";
 import Link from "next/link";
 
 const PROOFREAD_ONLY_NAME = "Proofread Only";
@@ -184,6 +185,10 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Voice-clone dialog — mounted ONCE here (StylePanel mounts twice: desktop
+          sidebar + mobile drawer). Both triggers open it via the shared store. */}
+      <VoiceCloneDialog />
     </div>
   );
 }
