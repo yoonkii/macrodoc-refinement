@@ -37,10 +37,23 @@ export default function LegalPage() {
             underlying AI models.
           </LegalSubsection>
           <LegalSubsection title="Data Processing:">
-            While we do not permanently store your personal data, all text
-            submitted to Macro Doc Refinement is processed through third-party AI
-            services (Google&apos;s Gemini API) to generate the refined outputs.
-            This processing is necessary to provide our text refinement service.
+            While we do not permanently store your personal data, all text you
+            submit to Macro Doc Refinement is sent to the AI provider you select
+            to generate the refined outputs. On the default (free) setting, your
+            text is processed by Google&apos;s Gemini API via our proxy. If you
+            configure your own model in Settings, your text is sent directly from
+            your browser to that provider &mdash; OpenAI, Anthropic, Google, or
+            xAI (Grok) &mdash; using your own API key. This processing is
+            necessary to provide our text refinement service.
+          </LegalSubsection>
+          <LegalSubsection title="Usage Analytics and Error Reporting:">
+            We collect anonymous usage analytics (via Vercel Analytics and Speed
+            Insights) to understand aggregate traffic and performance. When error
+            reporting is enabled, we also collect anonymous error diagnostics
+            (via Sentry) to help us fix problems. These tools do not receive the
+            text you submit, the refined output, or your API keys &mdash; error
+            reports are truncated and scrubbed of sensitive values before they
+            are sent.
           </LegalSubsection>
           <LegalSubsection title="Sensitive Information Warning:">
             We strongly advise against submitting any sensitive, confidential, or
