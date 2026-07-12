@@ -34,11 +34,25 @@ export function AppHeader({
 }: AppHeaderProps) {
   const { theme, setTheme } = useTheme();
   const [aboutOpen, setAboutOpen] = useState(false);
+  // Fullscreen CRT power-OFF flash, played only while LEAVING the mdr theme.
+  const [crtOff, setCrtOff] = useState(false);
   const clickCountRef = useRef(0);
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  /** Trigger the CRT power-off overlay, unless the user prefers reduced motion. */
+  function playCrtOff() {
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+    setCrtOff(true);
+  }
+
   function handleThemeToggle() {
     if (theme === "mdr") {
+      playCrtOff();
       setTheme("dark");
     } else {
       setTheme(theme === "dark" ? "light" : "dark");
@@ -53,6 +67,7 @@ export function AppHeader({
     if (clickCountRef.current >= 3) {
       clickCountRef.current = 0;
       if (theme === "mdr") {
+        playCrtOff();
         setTheme("dark");
       } else {
         document.documentElement.classList.add("crt-flash");
@@ -246,6 +261,16 @@ export function AppHeader({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* CRT power-OFF overlay — a bright collapse to a thin line, then fade.
+          Covers the theme swap when leaving mdr; self-removes on animation end. */}
+      {crtOff && (
+        <div
+          className="crt-off-overlay fixed inset-0 z-[100] pointer-events-none"
+          aria-hidden="true"
+          onAnimationEnd={() => setCrtOff(false)}
+        />
+      )}
     </>
   );
 }

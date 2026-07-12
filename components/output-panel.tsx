@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { useTheme } from "next-themes";
 import {
   Type,
   Loader2,
@@ -23,6 +24,7 @@ import {
 import { PLATFORM_META } from "@/lib/constants";
 import type { PlatformKey } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { LimitMeter } from "@/components/char-counter";
 
 type OutputTab = "refined" | PlatformKey;
 
@@ -424,8 +426,24 @@ function RefinedTabContent({
   );
 }
 
-/** Empty Refined state — waveform motif + mono channel caption (no "magic"). */
+/**
+ * Empty Refined state. Theme-aware: the default (light/dark) shows the waveform
+ * motif; MDR mode shows the Severance "macrodata" number grid. Theme-dependent
+ * output is gated on `mounted` because next-themes reports `theme` as undefined
+ * on the first client render — rendering the grid before mount would mismatch
+ * the SSR HTML.
+ */
 function EmptyRefinedState() {
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (mounted && theme === "mdr") return <MdrEmptyState />;
+  return <WaveformEmptyState />;
+}
+
+/** Default empty state — waveform motif + mono channel caption (no "magic"). */
+function WaveformEmptyState() {
   return (
     <div className="flex flex-col items-center justify-center h-full p-4">
       <svg
@@ -460,6 +478,87 @@ function EmptyRefinedState() {
   );
 }
 
+// ── MDR empty state — Severance macrodata grid ──
+
+const MDR_GRID_ROWS = 6;
+const MDR_GRID_COLS = 14;
+
+/**
+ * The show's "scary numbers" — a fixed handful of cells rendered larger. Kept as
+ * a static Set (row-col keys) so the layout is deterministic across SSR/CSR; no
+ * Math.random, which would desync hydration.
+ */
+const MDR_SCARY_CELLS = new Set(["1-4", "2-10", "4-2"]);
+
+/** Deterministic single digit for a cell — pure function of its coordinates. */
+function mdrDigit(row: number, col: number): number {
+  return (row * 31 + col * 7 + 3) % 10;
+}
+
+/** One full digit block. Rendered twice inside the drift wrapper for a seamless loop. */
+function MdrDigitBlock({ ariaHidden }: { ariaHidden?: boolean }) {
+  const rows = [];
+  for (let row = 0; row < MDR_GRID_ROWS; row++) {
+    const cells = [];
+    for (let col = 0; col < MDR_GRID_COLS; col++) {
+      const key = `${row}-${col}`;
+      const isScary = MDR_SCARY_CELLS.has(key);
+      // Two named tones: most digits --text-dim, a diagonal band --lumon-dim.
+      const toneVar = (row + col) % 5 === 0 ? "var(--lumon-dim)" : "var(--text-dim)";
+      cells.push(
+        <span
+          key={col}
+          className="inline-block w-5 text-center"
+          style={
+            isScary
+              ? { color: "var(--lumon)", transform: "scale(1.7)" }
+              : { color: toneVar }
+          }
+        >
+          {mdrDigit(row, col)}
+        </span>,
+      );
+    }
+    rows.push(
+      <div key={row} className="flex justify-center gap-1">
+        {cells}
+      </div>,
+    );
+  }
+  return (
+    <div aria-hidden={ariaHidden} className="py-1">
+      {rows}
+    </div>
+  );
+}
+
+/** MDR empty state — drifting macrodata grid + mono caption. */
+function MdrEmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center h-full p-4">
+      <div
+        className="relative h-28 w-full overflow-hidden mb-3"
+        style={{
+          maskImage:
+            "linear-gradient(to bottom, transparent, #000 28%, #000 72%, transparent)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, transparent, #000 28%, #000 72%, transparent)",
+        }}
+      >
+        {/* Two stacked identical blocks; translating the wrapper by -50% loops
+            seamlessly. Drift + fade only — the scary digits are static scale. */}
+        <div className="mdr-grid-drift absolute inset-x-0 top-0 font-mono text-xs leading-6 select-none">
+          <MdrDigitBlock />
+          <MdrDigitBlock ariaHidden />
+        </div>
+      </div>
+      <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-muted)] text-center">
+        Macrodata awaiting refinement
+      </p>
+    </div>
+  );
+}
+
 // ── Platform Tab ──
 
 interface PlatformTabContentProps {
@@ -482,7 +581,6 @@ function PlatformTabContent({
   const meta = PLATFORM_META[platform];
   const hasContent = output.length > 0;
   const charCount = output.length;
-  const isOverLimit = meta.charLimit > 0 && charCount > meta.charLimit;
   // Only surface the error state when there is no content to show for this tab —
   // a fresh retry that succeeds for other platforms shouldn't hide good output.
   const showError = hasError && !hasContent && !isGenerating;
@@ -520,7 +618,7 @@ function PlatformTabContent({
             </button>
           </div>
         ) : hasContent ? (
-          <div className="h-full overflow-y-auto p-3 pb-7">
+          <div className="h-full overflow-y-auto p-3 pb-9">
             <p className="font-sans text-sm text-[var(--text)] leading-relaxed whitespace-pre-wrap break-words select-text">
               {output}
             </p>
@@ -533,16 +631,12 @@ function PlatformTabContent({
             </p>
           </div>
         )}
-        {/* Char counter inside content box, bottom-right */}
+        {/* VU-meter counter — bottom-anchored, full width. Fades scrolled text
+            beneath it via a --bg gradient so the two never collide. */}
         {hasContent && meta.charLimit > 0 && (
-          <span
-            className={cn(
-              "absolute bottom-2 right-3 font-mono text-[10px] pointer-events-none opacity-50",
-              isOverLimit ? "text-[var(--error)] opacity-80" : "text-[var(--text-muted)]"
-            )}
-          >
-            {charCount} / {meta.charLimit}
-          </span>
+          <div className="absolute inset-x-0 bottom-0 px-3 pt-4 pb-2 pointer-events-none bg-gradient-to-t from-[var(--bg)] via-[var(--bg)] to-transparent">
+            <LimitMeter count={charCount} limit={meta.charLimit} />
+          </div>
         )}
       </div>
 

@@ -373,6 +373,110 @@ body {
   animation: take-settle 400ms ease-out;
 }
 
+/* ────────────────────────────────────────────────────
+   VU-meter fill (platform char counters)
+   ──────────────────────────────────────────────────── */
+
+/* Width + color animate so the bar reads as a live level meter while multi-post
+   text streams in. Gated off under reduced-motion below. */
+.limit-meter-fill {
+  transition: width 150ms ease-out, background-color 150ms ease-out;
+}
+
+/* ────────────────────────────────────────────────────
+   MDR discovery tip toast — subtle enter
+   ──────────────────────────────────────────────────── */
+
+@keyframes mdr-tip-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.mdr-tip-toast {
+  animation: mdr-tip-enter 250ms ease-out;
+}
+
+/* ────────────────────────────────────────────────────
+   MDR empty state — drifting macrodata grid
+   ──────────────────────────────────────────────────── */
+
+/* The wrapper holds two identical digit blocks stacked; translating by -50%
+   scrolls exactly one block height for a seamless linear loop. */
+@keyframes mdr-grid-drift {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+.mdr-grid-drift {
+  animation: mdr-grid-drift 24s linear infinite;
+}
+
+/* ────────────────────────────────────────────────────
+   MDR block cursor — overrides the streaming bar into a Lumon block.
+   CSS animations outrank Framer Motion's inline opacity, so steps() wins.
+   ──────────────────────────────────────────────────── */
+
+@keyframes mdr-cursor-blink {
+  0%,
+  49.9% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.mdr .streaming-cursor {
+  width: 0.6em;
+  height: 1em;
+  background: var(--lumon);
+  box-shadow: none;
+  animation: mdr-cursor-blink 1s steps(1) infinite;
+}
+
+/* ────────────────────────────────────────────────────
+   CRT power-OFF — bright collapse to a thin line, then fade
+   ──────────────────────────────────────────────────── */
+
+@keyframes crt-off {
+  0% {
+    opacity: 1;
+    transform: scaleY(1);
+    background-color: rgba(240, 246, 247, 0);
+  }
+  16% {
+    opacity: 1;
+    transform: scaleY(1);
+    background-color: rgba(240, 246, 247, 0.85);
+  }
+  55% {
+    opacity: 1;
+    transform: scaleY(0.006);
+    background-color: rgba(240, 246, 247, 1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleY(0.006);
+    background-color: rgba(240, 246, 247, 1);
+  }
+}
+
+.crt-off-overlay {
+  transform-origin: center;
+  animation: crt-off 350ms ease-in forwards;
+}
+
 /* Respect reduced-motion: disable bloom/pulse/glow and the ambient raise */
 @media (prefers-reduced-motion: reduce) {
   .token-bloom {
@@ -386,5 +490,20 @@ body {
   }
   .dark body::before {
     transition: none;
+  }
+  .limit-meter-fill {
+    transition: none;
+  }
+  .mdr-tip-toast {
+    animation: none;
+  }
+  .mdr-grid-drift {
+    animation: none;
+  }
+  .mdr .streaming-cursor {
+    animation: none;
+  }
+  .crt-off-overlay {
+    animation: none;
   }
 }
