@@ -27,6 +27,7 @@ export interface TextRefineActions {
   setInputText: (text: string) => void;
   setRefinedText: (text: string) => void;
   processNow: () => void;
+  setSuppressAutoRefine: (value: boolean) => void;
   acceptRefinement: () => void;
   clearError: () => void;
   updateActiveProfiles: (profiles: StyleProfile[]) => void;
@@ -40,6 +41,11 @@ export type TextRefineStore = TextRefineState & TextRefineActions;
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
 let abortController: AbortController | null = null;
+
+// While true, setInputText updates the text but does NOT schedule the 300ms
+// auto-refine. Voice dictation flips this on so streaming appended transcripts
+// don't spam the API; the caller fires a single processNow() on stop.
+let suppressAutoRefine = false;
 
 /**
  * Stable change-detection key for the active profile set. Includes every field
@@ -210,6 +216,14 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
         return;
       }
 
+      // While dictation is active, hold the text but skip auto-refine — the
+      // caller triggers one processNow() when recording stops.
+      if (suppressAutoRefine) {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = null;
+        return;
+      }
+
       // Debounce: clear previous timer, set new 300ms timer
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
@@ -229,6 +243,16 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = null;
         processText(inputText);
+      }
+    },
+
+    setSuppressAutoRefine(value: boolean): void {
+      suppressAutoRefine = value;
+      // Turning suppression on cancels any refine already queued from the last
+      // keystroke so nothing fires mid-dictation.
+      if (value && debounceTimer) {
+        clearTimeout(debounceTimer);
+        debounceTimer = null;
       }
     },
 

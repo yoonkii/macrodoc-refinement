@@ -35,6 +35,52 @@ async function readWithTimeout<T>(
   }
 }
 
+// ── Shared browser-to-provider fetch ────────────────────────────────────────
+
+/** Human-readable provider name for user-facing error copy. */
+function providerLabel(provider: string): string {
+  switch (provider) {
+    case 'openai':
+      return 'OpenAI';
+    case 'grok':
+      return 'xAI (Grok)';
+    case 'anthropic':
+      return 'Anthropic';
+    case 'google':
+      return 'Google Gemini';
+    default:
+      return provider;
+  }
+}
+
+/**
+ * Single choke point for every provider request. A rejected `fetch` with a
+ * `TypeError` means the browser never got a response — CORS block, DNS/offline,
+ * or the provider refusing direct browser calls. Rethrow a clear, reassuring
+ * message (the key stays local) instead of the opaque native "Failed to fetch".
+ *
+ * AbortError is a DOMException, not a TypeError, so cancellations pass through
+ * untouched and are handled by the caller.
+ */
+async function providerFetch(
+  input: string,
+  init: RequestInit,
+  provider: string,
+): Promise<Response> {
+  try {
+    return await fetch(input, init);
+  } catch (error: unknown) {
+    if (error instanceof TypeError) {
+      throw new Error(
+        `Could not reach ${providerLabel(provider)} directly from the browser. ` +
+          'This can be a network issue or the provider blocking browser calls — ' +
+          'your key was not sent anywhere else.',
+      );
+    }
+    throw error;
+  }
+}
+
 // ── Main entry point ───────────────────────────────────────────────────────
 
 /**
@@ -106,7 +152,7 @@ async function* streamOpenAICompatible(
 ): AsyncGenerator<string> {
   const baseUrl = getOpenAIBaseUrl(config.provider);
 
-  const response = await fetch(`${baseUrl}/chat/completions`, {
+  const response = await providerFetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -118,7 +164,7 @@ async function* streamOpenAICompatible(
       stream: true,
     }),
     signal,
-  });
+  }, config.provider);
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => 'Unknown error');
@@ -140,7 +186,7 @@ async function generateOpenAICompatible(
 ): Promise<string> {
   const baseUrl = getOpenAIBaseUrl(config.provider);
 
-  const response = await fetch(`${baseUrl}/chat/completions`, {
+  const response = await providerFetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -151,7 +197,7 @@ async function generateOpenAICompatible(
       messages: [{ role: 'user', content: prompt }],
     }),
     signal,
-  });
+  }, config.provider);
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => 'Unknown error');
@@ -182,7 +228,7 @@ async function* streamAnthropic(
   config: ModelConfig,
   signal: AbortSignal,
 ): AsyncGenerator<string> {
-  const response = await fetch(ANTHROPIC_API_URL, {
+  const response = await providerFetch(ANTHROPIC_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -197,7 +243,7 @@ async function* streamAnthropic(
       messages: [{ role: 'user', content: prompt }],
     }),
     signal,
-  });
+  }, config.provider);
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => 'Unknown error');
@@ -216,7 +262,7 @@ async function generateAnthropic(
   config: ModelConfig,
   signal?: AbortSignal,
 ): Promise<string> {
-  const response = await fetch(ANTHROPIC_API_URL, {
+  const response = await providerFetch(ANTHROPIC_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -230,7 +276,7 @@ async function generateAnthropic(
       messages: [{ role: 'user', content: prompt }],
     }),
     signal,
-  });
+  }, config.provider);
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => 'Unknown error');
@@ -262,7 +308,7 @@ async function* streamGoogle(
 ): AsyncGenerator<string> {
   const url = `${GEMINI_API_BASE}/${config.model}:streamGenerateContent?alt=sse`;
 
-  const response = await fetch(url, {
+  const response = await providerFetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -276,7 +322,7 @@ async function* streamGoogle(
       },
     }),
     signal,
-  });
+  }, config.provider);
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => 'Unknown error');
@@ -300,7 +346,7 @@ async function generateGoogle(
 ): Promise<string> {
   const url = `${GEMINI_API_BASE}/${config.model}:generateContent`;
 
-  const response = await fetch(url, {
+  const response = await providerFetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -314,7 +360,7 @@ async function generateGoogle(
       },
     }),
     signal,
-  });
+  }, config.provider);
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => 'Unknown error');
