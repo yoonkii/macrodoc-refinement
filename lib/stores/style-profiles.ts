@@ -6,7 +6,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-import { DEFAULT_PROFILES } from '../constants';
+import { DEFAULT_PROFILES, VOICE_PACK_V1_NAMES } from '../constants';
 import type { StyleProfile } from '../types';
 
 const STORAGE_KEY = 'mdr-style-profiles';
@@ -157,8 +157,35 @@ export const useStyleProfilesStore = create<StyleProfilesStore>()(
     }),
     {
       name: STORAGE_KEY,
-      // Only persist the profiles array, not the loading flag
-      partialize: (state) => ({ profiles: state.profiles }),
+      // Persist the profiles plus a marker recording that the v1 voice pack
+      // has been merged. NOTE: `migrate` can't do this job — zustand skips it
+      // entirely when the stored JSON has no numeric `version` field, which is
+      // exactly the shape every pre-existing install has.
+      partialize: (state) => ({ profiles: state.profiles, packV1: true }),
+      version: 1,
+      // Ship the voice-pack styles to EXISTING users. Persisted state
+      // wholesale replaces DEFAULT_PROFILES on hydration, so new defaults
+      // would otherwise only reach fresh installs. Until the `packV1` marker
+      // lands in storage (on the user's next state change), the merge is
+      // idempotent — additions are matched by name, so re-running it (or a
+      // prior manual import of the pack) never duplicates. Once the marker is
+      // persisted, deleted pack profiles stay deleted.
+      merge: (persisted, current) => {
+        const p = persisted as { profiles?: StyleProfile[]; packV1?: boolean } | undefined;
+        if (!p || !Array.isArray(p.profiles)) return current;
+
+        let profiles = p.profiles;
+        if (!p.packV1) {
+          const existingNames = new Set(profiles.map((x) => x.name));
+          profiles = [
+            ...profiles,
+            ...DEFAULT_PROFILES.filter(
+              (d) => VOICE_PACK_V1_NAMES.includes(d.name) && !existingNames.has(d.name),
+            ),
+          ];
+        }
+        return { ...current, profiles };
+      },
     },
   ),
 );

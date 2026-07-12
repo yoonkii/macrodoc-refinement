@@ -187,6 +187,112 @@ export const DEFAULT_PROFILES: StyleProfile[] = [
     ],
     isActive: false,
   },
+  // ── Voice style pack (v1) — kept in parity with the web app's defaults.
+  {
+    id: defaultId('personality'),
+    name: "Detective Noir",
+    type: 'personality',
+    toneBaseline: 0,
+    instructions:
+      "Rewrite in hard-boiled noir monologue. Short, clipped sentences. World-weary, wry tone. Concrete sensory details \u2014 rain, neon, cheap coffee. Metaphors that land like a punch. First person where possible. Never cheerful, always sharp.",
+    fewShots: [
+      "Instead of \"The meeting was moved to Thursday\", write \"The meeting got pushed to Thursday. Nobody asked why. Nobody ever does.\"",
+    ],
+    isActive: false,
+    charLimit: null,
+  },
+  {
+    id: defaultId('personality'),
+    name: "Nature Documentary",
+    type: 'personality',
+    toneBaseline: -0.3,
+    instructions:
+      "Rewrite as a hushed nature-documentary narration. Present tense. Treat the subject with reverent fascination, as if observing a rare creature in the wild. Gentle awe, precise observation, patient pacing. Refer to people as 'the specimen' or by role sparingly for humor.",
+    fewShots: [
+      "Instead of \"John finally replied to my email\", write \"And here \u2014 after six long days \u2014 the specimen stirs. A reply. Remarkable.\"",
+    ],
+    isActive: false,
+    charLimit: null,
+  },
+  {
+    id: defaultId('personality'),
+    name: "Movie Trailer",
+    type: 'personality',
+    toneBaseline: 0.5,
+    instructions:
+      "Rewrite as an epic movie-trailer voiceover. Dramatic one-liners. Heavy pauses implied by line breaks. Escalating stakes. Phrases like 'In a world\u2026', 'One chance\u2026', 'This time\u2026'. Everything is monumental, even mundane logistics.",
+    fewShots: [
+      "Instead of \"Lunch is rescheduled to 1pm\", write \"In a world where hunger waits\u2026 one hour changes everything. LUNCH. This time, at 1PM.\"",
+    ],
+    isActive: false,
+    charLimit: null,
+  },
+  {
+    id: defaultId('personality'),
+    name: "Zen Master",
+    type: 'personality',
+    toneBaseline: -0.5,
+    instructions:
+      "Rewrite with the calm brevity of a zen teacher. Strip everything unnecessary. Short declarative sentences. Occasional gentle paradox or question. No urgency \u2014 things simply are. White space is part of the message.",
+    fewShots: [
+      "Instead of \"Sorry for the delay, I've been swamped with work\", write \"The reply is late. The work was heavy. Both are true. Here it is.\"",
+    ],
+    isActive: false,
+    charLimit: null,
+  },
+  {
+    id: defaultId('personality'),
+    name: "Passive-Aggressive Coworker",
+    type: 'personality',
+    toneBaseline: 0.2,
+    instructions:
+      "Rewrite with impeccable corporate politeness that carries an unmistakable edge. Phrases like 'per my last email', 'as previously discussed', 'just to circle back', 'thanks in advance'. Never openly rude \u2014 the daggers are in the pleasantries. End with a cheerful sign-off that lands like a threat.",
+    fewShots: [
+      "Instead of \"You still haven't sent the file\", write \"Just gently circling back on the file \u2014 I know how busy things get! As mentioned in my last three notes, we'll need it today. Thanks so much in advance!\"",
+    ],
+    isActive: false,
+    charLimit: null,
+  },
+  {
+    id: defaultId('personality'),
+    name: "Lumon Wellness",
+    type: 'personality',
+    toneBaseline: -0.7,
+    instructions:
+      "Rewrite as a Lumon wellness-session script from Severance. Serene, measured, faintly unsettling corporate tenderness. Address the reader's efforts as praiseworthy facts ('Your work is valued'). Short affirmations. Calm imperatives. An undercurrent of surveillance dressed as care. It will be nice.",
+    fewShots: [
+      "Instead of \"Good job finishing the report\", write \"You completed the report. Your diligence has been noted, and it pleases. Take a moment to enjoy each fact equally. Your outie is proud of you.\"",
+    ],
+    isActive: false,
+    charLimit: null,
+  },
+  {
+    id: defaultId('personality'),
+    name: "K-Drama Subtitles",
+    type: 'personality',
+    toneBaseline: 0.3,
+    instructions:
+      "Rewrite as melodramatic K-drama subtitles. Heightened emotional stakes, dramatic pauses with ellipses, short breathless lines. Rhetorical questions asked to the void. Fate and destiny invoked for mundane events. Occasional stage directions in parentheses \u2014 (a single tear), (rain begins to fall). An implied close-up on every revelation. Keep the meaning; multiply the drama. Works in any language the input uses.",
+    fewShots: [
+      "Instead of \"The file was sent late\", write \"The file\u2026 arrived late. Why does it always end this way\u2026? (rain begins to fall) No. Not this time.\"",
+      "Instead of \"Meeting moved to Thursday\", write \"Thursday. Of all days\u2026 it had to be Thursday. (a single tear) So be it.\"",
+    ],
+    isActive: false,
+    charLimit: null,
+  },
+  {
+    id: defaultId('personality'),
+    name: "Diplomatic Translator",
+    type: 'personality',
+    toneBaseline: -0.5,
+    instructions:
+      "Rewrite as a seasoned diplomat's statement. Transform frustration or bluntness into measured, face-saving language that still lands the point with full force. Passive constructions to depersonalize blame ('commitments were not met'). Formal registers: 'we note with concern', 'we would welcome', 'we remain confident'. Deadlines framed as shared goals. Never apologize for the ask; never inflame. The steel stays \u2014 only the heat goes.",
+    fewShots: [
+      "Instead of \"You broke the build again, fix it now\", write \"We note that the build has regressed following recent changes. We would welcome its restoration as a matter of priority today, and remain confident in a swift resolution.\"",
+    ],
+    isActive: false,
+    charLimit: null,
+  },
 ];
 
 // ── Platform Metadata ───────────────────────────────────────────────────────
