@@ -11,6 +11,29 @@ import type { StyleProfile } from '../types';
 
 const STORAGE_KEY = 'mdr-style-profiles';
 
+// The standalone proofread toggle is rendered outside every reorderable group,
+// so it must never participate in up/down moves. Kept in sync with the same
+// constant in components/style-panel.tsx.
+const PROOFREAD_ONLY_NAME = 'Proofread Only';
+
+/** Rendered grouping used by the style panel — reorder stays within a group. */
+type ProfileGroup = 'personality' | 'customLearned' | 'excluded';
+
+/**
+ * Classify a profile into the same buckets the panel renders:
+ * - personality tiles (type 'personality', excluding the Proofread toggle)
+ * - custom/learned tiles (type 'custom' or 'learned')
+ * Everything else (platform presets, the Proofread toggle) is not reorderable.
+ */
+function groupOf(profile: StyleProfile): ProfileGroup {
+  if (profile.name === PROOFREAD_ONLY_NAME) return 'excluded';
+  if (profile.type === 'personality') return 'personality';
+  if (profile.type === 'custom' || profile.type === 'learned') {
+    return 'customLearned';
+  }
+  return 'excluded';
+}
+
 export interface StyleProfilesState {
   profiles: StyleProfile[];
   isLoading: boolean;
@@ -23,6 +46,7 @@ export interface StyleProfilesActions {
   toggleProfileActive: (id: string) => void;
   setProfileActive: (id: string, isActive: boolean) => void;
   reorderProfiles: (oldIndex: number, newIndex: number) => void;
+  moveProfile: (id: string, direction: 'up' | 'down') => void;
 }
 
 export type StyleProfilesStore = StyleProfilesState & StyleProfilesActions;
@@ -92,6 +116,41 @@ export const useStyleProfilesStore = create<StyleProfilesStore>()(
           const adjustedIndex =
             oldIndex < newIndex ? newIndex - 1 : newIndex;
           newProfiles.splice(adjustedIndex, 0, removed);
+          return { profiles: newProfiles };
+        });
+      },
+
+      moveProfile(id: string, direction: 'up' | 'down'): void {
+        set((state) => {
+          const { profiles } = state;
+          const index = profiles.findIndex((p) => p.id === id);
+          if (index === -1) return state;
+
+          const group = groupOf(profiles[index]);
+          if (group === 'excluded') return state;
+
+          // Walk toward the requested direction until we hit the nearest
+          // profile in the SAME rendered group, skipping any interleaved
+          // members of other groups (e.g. platform presets). This keeps the
+          // reorder confined to what the panel shows as one contiguous list.
+          const step = direction === 'up' ? -1 : 1;
+          let neighbor = index + step;
+          while (
+            neighbor >= 0 &&
+            neighbor < profiles.length &&
+            groupOf(profiles[neighbor]) !== group
+          ) {
+            neighbor += step;
+          }
+
+          // No same-group neighbor in that direction — already the edge tile.
+          if (neighbor < 0 || neighbor >= profiles.length) return state;
+
+          const newProfiles = [...profiles];
+          [newProfiles[index], newProfiles[neighbor]] = [
+            newProfiles[neighbor],
+            newProfiles[index],
+          ];
           return { profiles: newProfiles };
         });
       },
