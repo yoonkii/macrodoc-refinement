@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/lib/theme";
 import { X } from "lucide-react";
 import { useTextRefineStore } from "@/lib/stores/text-refine";
 

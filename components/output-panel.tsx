@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/lib/theme";
 import {
   Type,
   Loader2,
@@ -429,9 +429,9 @@ function RefinedTabContent({
 /**
  * Empty Refined state. Theme-aware: the default (light/dark) shows the waveform
  * motif; MDR mode shows the Severance "macrodata" number grid. Theme-dependent
- * output is gated on `mounted` because next-themes reports `theme` as undefined
- * on the first client render — rendering the grid before mount would mismatch
- * the SSR HTML.
+ * output is gated on `mounted` because the theme provider reports `theme` as
+ * undefined on the first client render — rendering the grid before mount would
+ * mismatch the SSR HTML.
  */
 function EmptyRefinedState() {
   const { theme } = useTheme();

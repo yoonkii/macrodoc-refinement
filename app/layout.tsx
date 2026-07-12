@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
-import { ThemeProvider } from "next-themes";
+import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { SITE_URL } from "@/lib/constants";
 import { SentryInit } from "@/components/sentry-init";
+import { ThemeProvider, THEME_INIT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 // Display face (page titles, headers, wordmark) and monospace craft accent
@@ -63,12 +64,14 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="font-sans antialiased min-h-dvh flex flex-col">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          themes={["light", "dark", "mdr"]}
-        >
+        {/* Apply the persisted theme before paint (no flash). next/script with
+            beforeInteractive injects this into the initial HTML outside React's
+            hydration path, avoiding the client-side <script> render that trips
+            React 19 (minified hydration error #418). */}
+        <Script id="theme-init" strategy="beforeInteractive">
+          {THEME_INIT_SCRIPT}
+        </Script>
+        <ThemeProvider>
           {children}
           <SentryInit />
           <Analytics />
