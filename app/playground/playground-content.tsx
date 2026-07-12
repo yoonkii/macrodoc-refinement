@@ -192,7 +192,7 @@ export function PlaygroundContent() {
       {/* Main content — two-column layout */}
       <main className="flex-1 flex flex-col lg:flex-row min-h-0 p-4 md:p-5 gap-4">
         {/* Left column: Configuration (50%) */}
-        <div className="lg:flex-1 min-h-0 overflow-y-auto">
+        <div className="lg:flex-1 min-w-0 min-h-0 overflow-y-auto">
           <GlassCard className="h-full" innerClassName="flex flex-col p-5">
             <h2 className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-dim,var(--text-muted))] mb-4">
               Configuration
@@ -284,7 +284,7 @@ export function PlaygroundContent() {
         </div>
 
         {/* Right column: Live preview (50%) */}
-        <div className="lg:flex-1 min-h-0 flex flex-col">
+        <div className="lg:flex-1 min-w-0 min-h-0 flex flex-col">
           <GlassCard className="h-full" innerClassName="flex flex-col p-5">
             <h2 className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-dim,var(--text-muted))] mb-4">
               Live Preview

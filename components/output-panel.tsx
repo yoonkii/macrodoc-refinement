@@ -346,7 +346,7 @@ function RefinedTabContent({
         ) : (
           <div className="h-full overflow-y-auto p-3">
             {showDiff ? (
-              <p className="font-sans text-sm text-[var(--text)] leading-relaxed whitespace-pre-wrap select-text">
+              <p className="font-sans text-sm text-[var(--text)] leading-relaxed whitespace-pre-wrap break-words select-text">
                 {diffSegments!.map((segment, index) =>
                   segment.type === "equal" ? (
                     <span key={index}>{segment.text}</span>
@@ -521,7 +521,7 @@ function PlatformTabContent({
           </div>
         ) : hasContent ? (
           <div className="h-full overflow-y-auto p-3 pb-7">
-            <p className="font-sans text-sm text-[var(--text)] leading-relaxed whitespace-pre-wrap select-text">
+            <p className="font-sans text-sm text-[var(--text)] leading-relaxed whitespace-pre-wrap break-words select-text">
               {output}
             </p>
           </div>
