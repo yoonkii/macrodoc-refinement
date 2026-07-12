@@ -1,6 +1,6 @@
 "use client";
 
-import { useTheme } from "next-themes";
+import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 interface GlassCardProps {

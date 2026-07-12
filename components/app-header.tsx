@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/lib/theme";
 import { Sun, Moon, Monitor, Info, PanelRightOpen, PanelRightClose, Menu, FlaskConical, Settings, Puzzle } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
