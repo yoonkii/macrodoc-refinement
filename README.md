@@ -21,7 +21,9 @@ Paste or type your text. Macro Doc Refinement rewrites it in real time using AI,
 
 **https://mdr-nextjs.vercel.app**
 
-Works in any browser. Free tier uses Gemini Flash Lite (30 requests/minute). Add your own API key in Settings for unlimited usage with your preferred model.
+Works in any browser. Free tier uses Gemini Flash Lite (15 requests/minute, 40 with Google sign-in). Add your own API key in Settings for unlimited usage with your preferred model.
+
+> **Contributors / agents:** start with [docs/OVERVIEW.md](docs/OVERVIEW.md) — project + architecture overview, operational runbook, and the codebase's non-obvious invariants.
 
 ### Chrome Extension
 
