@@ -46,6 +46,12 @@ export default function LegalPage() {
             xAI (Grok) &mdash; using your own API key. This processing is
             necessary to provide our text refinement service.
           </LegalSubsection>
+          <LegalSubsection title="Voice Input:">
+            If you dictate text using the microphone button, your browser&apos;s
+            Web Speech API captures the audio. In Chrome, this audio is sent to
+            and processed by Google&apos;s speech-recognition service to produce
+            the transcript.
+          </LegalSubsection>
           <LegalSubsection title="Usage Analytics and Error Reporting:">
             We collect anonymous usage analytics (via Vercel Analytics and Speed
             Insights) to understand aggregate traffic and performance. When error

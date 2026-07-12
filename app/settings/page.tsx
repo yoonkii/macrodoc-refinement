@@ -269,6 +269,41 @@ export default function SettingsPage() {
                   </option>
                 ))}
               </select>
+
+              {/* Custom model override — providers ship new models faster than
+                  our static list. A non-empty value overrides the dropdown via
+                  setModel; when it matches a listed id the dropdown stays in
+                  sync automatically (both read config.model). */}
+              {requiresApiKey && (
+                <div className="space-y-2 pt-1">
+                  <label
+                    htmlFor="custom-model-id"
+                    className="block font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-muted)]"
+                  >
+                    Custom model ID
+                  </label>
+                  <input
+                    id="custom-model-id"
+                    type="text"
+                    value={config.model}
+                    onChange={(e) => setModel(e.target.value)}
+                    placeholder="gpt-5.2-mini"
+                    className={cn(
+                      "w-full px-3 py-2 rounded-lg text-sm font-mono",
+                      "bg-[var(--bg)] border border-[var(--border)]",
+                      "text-[var(--text)] placeholder:text-[var(--text-muted)]",
+                      "focus:outline-none focus:border-[var(--amber)]",
+                      "transition-colors",
+                    )}
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                  <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+                    The dropdown can lag behind new provider releases. Enter an
+                    exact model ID to use one that isn&apos;t listed yet.
+                  </p>
+                </div>
+              )}
             </div>
           </GlassCard>
         )}
