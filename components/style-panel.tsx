@@ -1,8 +1,17 @@
 "use client";
 
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, Download, Upload, AudioWaveform } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Download,
+  Upload,
+  AudioWaveform,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStyleProfilesStore } from "@/lib/stores/style-profiles";
 import { useVoiceCloneStore } from "@/lib/stores/voice-clone";
@@ -51,11 +60,9 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
       p.name !== PROOFREAD_ONLY_NAME
   );
 
-  // Sort personality profiles by toneBaseline ascending (most formal first)
-  const sortedPersonalityProfiles = useMemo(
-    () => [...personalityProfiles].sort((a, b) => a.toneBaseline - b.toneBaseline),
-    [personalityProfiles]
-  );
+  // Personalities render in the persisted array order so the manual up/down
+  // reordering below is reflected immediately (a live toneBaseline sort would
+  // silently discard the user's chosen order).
 
   const anyPersonalityActive = personalityProfiles.some((p) => p.isActive);
   const isProofreadActive = proofreadProfile?.isActive ?? false;
@@ -158,6 +165,23 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
     setDeletingProfile(null);
   }
 
+  // Tracks the most recently moved tile so it can play a one-shot settle
+  // animation (FLIP-lite). `nonce` bumps on every move so re-moving the same
+  // tile re-triggers the animation.
+  const [moved, setMoved] = useState<{
+    id: string;
+    dir: "up" | "down";
+    nonce: number;
+  } | null>(null);
+
+  const handleMove = useCallback(
+    (id: string, dir: "up" | "down") => {
+      store.moveProfile(id, dir);
+      setMoved((prev) => ({ id, dir, nonce: (prev?.nonce ?? 0) + 1 }));
+    },
+    [store]
+  );
+
   const content = (
     <>
       <div className="flex-1 overflow-y-auto px-2 py-3">
@@ -201,45 +225,45 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
           </div>
         )}
 
-        {/* Personality Modes — sorted by formality (most formal first) */}
-        {sortedPersonalityProfiles.length > 0 && (
-          <ProfileSection
-            title="Personality Modes"
-            profiles={sortedPersonalityProfiles}
-            onToggle={(id) => {
-              const p = profiles.find((pr) => pr.id === id);
-              if (p) store.setProfileActive(id, !p.isActive);
-            }}
-            onEdit={handleEdit}
-            onDelete={handleDeleteRequest}
-          />
-        )}
-
-        {/* Clone My Voice — entry point to the voice-clone flow */}
+        {/* Custom Styles — creation actions sit at the very top of the section
+            (above any tiles) so they are reachable without scrolling. */}
         <div className="mx-2 mb-2">
           <p className="px-1 mt-5 mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-dim,var(--text-muted))]">
             Custom Styles
           </p>
-          <button
-            type="button"
-            onClick={() => {
-              onNavigate?.();
-              openVoiceDialog();
-            }}
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 h-10 rounded-full border border-[var(--amber)] text-[var(--amber)] font-sans text-sm font-medium hover:bg-[var(--amber)] hover:text-[#1A1816] transition-colors"
-          >
-            <AudioWaveform className="size-4" />
-            {learnedProfile ? "My Voice" : "Clone My Voice"}
-            {learnedProfile?.isActive && (
-              <span
-                className="size-1.5 rounded-full bg-[var(--teal)]"
-                aria-label="active"
-              />
-            )}
-          </button>
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                onNavigate?.();
+                openVoiceDialog();
+              }}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 h-10 rounded-full border border-[var(--amber)] text-[var(--amber)] font-sans text-sm font-medium hover:bg-[var(--amber)] hover:text-[#1A1816] transition-colors"
+            >
+              <AudioWaveform className="size-4" />
+              {learnedProfile ? "My Voice" : "Clone My Voice"}
+              {learnedProfile?.isActive && (
+                <span
+                  className="size-1.5 rounded-full bg-[var(--teal)]"
+                  aria-label="active"
+                />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onNavigate?.();
+                router.push("/playground");
+              }}
+              className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 h-10 rounded-full border border-[var(--amber)] text-[var(--amber)] font-sans text-sm font-medium hover:bg-[var(--amber)] hover:text-[#1A1816] transition-colors"
+            >
+              <Plus className="size-4" />
+              Add New Style
+            </button>
+          </div>
         </div>
 
-        {/* Custom profiles */}
+        {/* Custom profile tiles */}
         {customProfiles.length > 0 && (
           <ProfileSection
             title="Custom"
@@ -250,20 +274,26 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
             }}
             onEdit={handleEdit}
             onDelete={handleDeleteRequest}
+            onMove={handleMove}
+            moved={moved}
           />
         )}
-      </div>
 
-      {/* Add new style button — navigates to /playground */}
-      <div className="p-3">
-        <button
-          type="button"
-          onClick={() => { onNavigate?.(); router.push("/playground"); }}
-          className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-1.5 h-8 rounded-full border border-[var(--amber)] text-[var(--amber)] font-sans text-xs font-medium hover:bg-[var(--amber)] hover:text-[#1A1816] transition-colors"
-        >
-          <Plus className="size-3.5" />
-          Add New Style
-        </button>
+        {/* Personality Modes */}
+        {personalityProfiles.length > 0 && (
+          <ProfileSection
+            title="Personality Modes"
+            profiles={personalityProfiles}
+            onToggle={(id) => {
+              const p = profiles.find((pr) => pr.id === id);
+              if (p) store.setProfileActive(id, !p.isActive);
+            }}
+            onEdit={handleEdit}
+            onDelete={handleDeleteRequest}
+            onMove={handleMove}
+            moved={moved}
+          />
+        )}
       </div>
 
       {/* Delete confirmation dialog */}
@@ -347,12 +377,20 @@ export function StylePanel({ isInDrawer = false, onNavigate }: StylePanelProps) 
 
 // ---------- Section ----------
 
+interface MovedTile {
+  id: string;
+  dir: "up" | "down";
+  nonce: number;
+}
+
 interface ProfileSectionProps {
   title: string;
   profiles: StyleProfile[];
   onToggle: (id: string) => void;
   onEdit: (profile: StyleProfile) => void;
   onDelete: (profile: StyleProfile) => void;
+  onMove: (id: string, direction: "up" | "down") => void;
+  moved: MovedTile | null;
 }
 
 function ProfileSection({
@@ -361,19 +399,27 @@ function ProfileSection({
   onToggle,
   onEdit,
   onDelete,
+  onMove,
+  moved,
 }: ProfileSectionProps) {
   return (
     <div className="mb-2">
       <p className="px-3 mt-5 mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--text-dim,var(--text-muted))]">
         {title}
       </p>
-      {profiles.map((profile) => (
+      {profiles.map((profile, index) => (
         <ProfileTile
           key={profile.id}
           profile={profile}
           onToggle={() => onToggle(profile.id)}
           onEdit={() => onEdit(profile)}
           onDelete={() => onDelete(profile)}
+          canMoveUp={index > 0}
+          canMoveDown={index < profiles.length - 1}
+          onMoveUp={() => onMove(profile.id, "up")}
+          onMoveDown={() => onMove(profile.id, "down")}
+          moveSignal={moved?.id === profile.id ? moved.nonce : 0}
+          moveDir={moved?.id === profile.id ? moved.dir : null}
         />
       ))}
     </div>
@@ -387,11 +433,58 @@ interface ProfileTileProps {
   onToggle: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  /** Non-zero + changing value re-triggers the settle animation on this tile. */
+  moveSignal: number;
+  moveDir: "up" | "down" | null;
 }
 
-function ProfileTile({ profile, onToggle, onEdit, onDelete }: ProfileTileProps) {
+function ProfileTile({
+  profile,
+  onToggle,
+  onEdit,
+  onDelete,
+  canMoveUp,
+  canMoveDown,
+  onMoveUp,
+  onMoveDown,
+  moveSignal,
+  moveDir,
+}: ProfileTileProps) {
+  const tileRef = useRef<HTMLDivElement>(null);
+
+  // FLIP-lite: on move, play a one-shot settle (translateY hint + amber-dim
+  // flash) so the eye can follow the tile to its new slot. Forcing a reflow
+  // restarts the CSS animation when the same tile is moved repeatedly.
+  useEffect(() => {
+    if (!moveSignal || !moveDir) return;
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+    const el = tileRef.current;
+    if (!el) return;
+
+    const cls = moveDir === "up" ? "tile-settle-up" : "tile-settle-down";
+    el.classList.remove("tile-settle-up", "tile-settle-down");
+    void el.offsetWidth; // force reflow to restart the animation
+    el.classList.add(cls);
+
+    const clear = () => el.classList.remove(cls);
+    el.addEventListener("animationend", clear, { once: true });
+    return () => el.removeEventListener("animationend", clear);
+  }, [moveSignal, moveDir]);
+
   return (
-    <div className="mx-2 mb-2 rounded-lg border border-[var(--border)] hover:border-[var(--border-hover,var(--border))] bg-[var(--elevated)] transition-colors duration-300">
+    <div
+      ref={tileRef}
+      className="mx-2 mb-2 rounded-lg border border-[var(--border)] hover:border-[var(--border-hover,var(--border))] bg-[var(--elevated)] transition-colors duration-300"
+    >
       {/* Name + switch row */}
       <div className="flex items-center gap-2 px-3 pt-3 pb-1">
         <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -425,7 +518,41 @@ function ProfileTile({ profile, onToggle, onEdit, onDelete }: ProfileTileProps) 
       </p>
 
       {/* Footer actions */}
-      <div className="flex justify-end gap-1 px-2 pb-1.5">
+      <div className="flex items-center gap-1 px-2 pb-1.5">
+        {/* Reorder within group — always visible but subtle (touch-friendly) */}
+        <button
+          type="button"
+          onClick={onMoveUp}
+          disabled={!canMoveUp}
+          aria-disabled={!canMoveUp}
+          aria-label="Move up"
+          className={cn(
+            "inline-flex items-center justify-center p-1 rounded-md transition-colors",
+            canMoveUp
+              ? "text-[var(--text-muted)] hover:text-[var(--text)]"
+              : "opacity-40 cursor-default text-[var(--text-muted)]"
+          )}
+        >
+          <ChevronUp className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={onMoveDown}
+          disabled={!canMoveDown}
+          aria-disabled={!canMoveDown}
+          aria-label="Move down"
+          className={cn(
+            "inline-flex items-center justify-center p-1 rounded-md transition-colors",
+            canMoveDown
+              ? "text-[var(--text-muted)] hover:text-[var(--text)]"
+              : "opacity-40 cursor-default text-[var(--text-muted)]"
+          )}
+        >
+          <ChevronDown className="size-3.5" />
+        </button>
+
+        <div className="flex-1" />
+
         <button
           type="button"
           onClick={onEdit}

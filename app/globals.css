@@ -504,8 +504,67 @@ body {
   animation: signal-chain-settle 250ms ease-out;
 }
 
+/* ────────────────────────────────────────────────────
+   Profile tile reorder — FLIP-lite settle
+   ──────────────────────────────────────────────────── */
+
+/* One-shot settle when a tile is moved up/down: a short translateY hint plus an
+   amber-dim background flash so the eye tracks the tile to its new slot. No fill
+   mode — transform and background revert to the tile's resting values (base
+   translateY(0), var(--elevated) surface) once the 200ms run completes. */
+@keyframes tile-settle-up {
+  0% {
+    transform: translateY(8px);
+    background-color: var(--amber-dim);
+  }
+}
+
+@keyframes tile-settle-down {
+  0% {
+    transform: translateY(-8px);
+    background-color: var(--amber-dim);
+  }
+}
+
+.tile-settle-up {
+  animation: tile-settle-up 200ms ease-out;
+}
+
+.tile-settle-down {
+  animation: tile-settle-down 200ms ease-out;
+}
+
+/* ────────────────────────────────────────────────────
+   Route change — enter-only page transition (template.tsx)
+   ──────────────────────────────────────────────────── */
+
+/* The app/template.tsx wrapper remounts on every top-level navigation, so this
+   fires fresh each time. Transform + opacity only → no layout shift, and the
+   element never blocks interaction. */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: page-enter 300ms ease-out both;
+}
+
 /* Respect reduced-motion: disable bloom/pulse/glow and the ambient raise */
 @media (prefers-reduced-motion: reduce) {
+  .tile-settle-up,
+  .tile-settle-down {
+    animation: none;
+  }
+  .page-enter {
+    animation: none;
+  }
   .signal-node-error-blink {
     animation: none;
   }
