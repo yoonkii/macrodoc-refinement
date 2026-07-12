@@ -1,0 +1,18 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- OLED-black squircle, matching DESIGN.md background + the extension mark's rounded shape -->
+  <rect width="128" height="128" rx="30" fill="#0A0A0C"/>
+  <!-- Amber "m" — the studio-monitor glow. Two round-capped strokes form a geometric m. -->
+  <g filter="url(#glow)" stroke="#E8A838" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M40 86 L40 58 Q40 46 52 46 Q64 46 64 58 L64 86"/>
+    <path d="M64 58 Q64 46 76 46 Q88 46 88 58 L88 86"/>
+  </g>
+</svg>
