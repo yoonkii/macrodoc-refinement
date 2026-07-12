@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTheme } from "@/lib/theme";
-import { Sun, Moon, Monitor, Info, PanelRightOpen, PanelRightClose, Menu, FlaskConical, Settings, Puzzle } from "lucide-react";
+import { Sun, Moon, Monitor, Info, PanelRightOpen, PanelRightClose, Menu, FlaskConical, Settings, Puzzle, Volume2, VolumeX } from "lucide-react";
+import { isSoundEnabled, setSoundEnabled, transportClick } from "@/lib/sound";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,10 +35,26 @@ export function AppHeader({
 }: AppHeaderProps) {
   const { theme, setTheme } = useTheme();
   const [aboutOpen, setAboutOpen] = useState(false);
+  // Tape-transport sound toggle. Initialised false to match SSR, then synced to
+  // the persisted flag on mount so there is no hydration mismatch.
+  const [soundOn, setSoundOn] = useState(false);
   // Fullscreen CRT power-OFF flash, played only while LEAVING the mdr theme.
   const [crtOff, setCrtOff] = useState(false);
   const clickCountRef = useRef(0);
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setSoundOn(isSoundEnabled());
+  }, []);
+
+  /** Toggle tape-transport sound. Enabling plays one confirmation click — the
+   *  same user gesture that unlocks the Web Audio context. */
+  function handleSoundToggle() {
+    const next = !soundOn;
+    setSoundEnabled(next);
+    setSoundOn(next);
+    if (next) transportClick();
+  }
 
   /** Trigger the CRT power-off overlay, unless the user prefers reduced motion. */
   function playCrtOff() {
@@ -193,6 +210,32 @@ export function AppHeader({
 
           {/* Google sign-in / account menu */}
           <AuthButton />
+
+          {/* Tape-transport sound toggle — cross-fades the speaker icon in 150ms */}
+          <button
+            type="button"
+            onClick={handleSoundToggle}
+            aria-pressed={soundOn}
+            className="p-1.5 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
+            aria-label={soundOn ? "Disable sound" : "Enable sound"}
+          >
+            <span className="relative inline-flex size-4 items-center justify-center">
+              <Volume2
+                aria-hidden="true"
+                className={cn(
+                  "absolute size-4 transition-opacity duration-150 ease-out motion-reduce:transition-none",
+                  soundOn ? "opacity-100" : "opacity-0",
+                )}
+              />
+              <VolumeX
+                aria-hidden="true"
+                className={cn(
+                  "absolute size-4 transition-opacity duration-150 ease-out motion-reduce:transition-none",
+                  soundOn ? "opacity-0" : "opacity-100",
+                )}
+              />
+            </span>
+          </button>
 
           {/* Theme toggle */}
           <button

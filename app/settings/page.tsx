@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
   Eye,
   EyeOff,
   Loader2,
-  CheckCircle2,
-  XCircle,
   RotateCcw,
   Shield,
   Zap,
@@ -32,6 +30,79 @@ const PROVIDER_KEYS: ProviderKey[] = [
   "grok",
 ];
 
+/** Rack-channel accent per provider row — the mono craft tag above the label. */
+const CHANNEL_LABELS: Record<ProviderKey, string> = {
+  default: "DEFAULT (FREE)",
+  openai: "OPENAI",
+  anthropic: "ANTHROPIC",
+  google: "GOOGLE",
+  grok: "XAI",
+};
+
+function channelTag(key: ProviderKey, index: number): string {
+  const number = String(index + 1).padStart(2, "0");
+  return `CH ${number} — ${CHANNEL_LABELS[key]}`;
+}
+
+// ── Signal-chain theater ────────────────────────────────────────────────────
+// Three mono-labelled nodes wired KEY → PROVIDER → STREAM. Their lit/dim/error
+// state is driven by the live test lifecycle (see handleTestConnection).
+
+const SIGNAL_NODES = ["KEY", "PROVIDER", "STREAM"] as const;
+
+type NodeState = "dim" | "lit" | "error";
+
+/** A single signal node: an LED dot plus its mono label. */
+function SignalNode({ label, state }: { label: string; state: NodeState }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span
+        aria-hidden="true"
+        className={cn(
+          "size-2 rounded-full border transition-[background-color,box-shadow,border-color] duration-150 ease-out motion-reduce:transition-none",
+          state === "lit" && "bg-[var(--teal)] border-[var(--teal)]",
+          state === "error" &&
+            "bg-[var(--error)] border-[var(--error)] signal-node-error-blink",
+          state === "dim" && "bg-transparent border-[var(--text-muted)]",
+        )}
+        style={
+          state === "lit"
+            ? { boxShadow: "0 0 6px var(--teal)" }
+            : state === "error"
+              ? { boxShadow: "0 0 6px var(--error)" }
+              : undefined
+        }
+      />
+      <span
+        className={cn(
+          "font-mono text-[10px] uppercase tracking-[0.08em] transition-colors duration-150",
+          state === "lit" && "text-[var(--teal)]",
+          state === "error" && "text-[var(--error)]",
+          state === "dim" && "text-[var(--text-muted)]",
+        )}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
+/** The 1px connector between two nodes; its teal fill scales in from the left
+ *  (transform-origin left, 200ms ease-out) as the signal advances. */
+function SignalSegment({ filled }: { filled: boolean }) {
+  return (
+    <div className="relative h-px w-6 shrink-0 overflow-hidden bg-[var(--border)]">
+      <div
+        className={cn(
+          "absolute inset-0 origin-left bg-[var(--teal)] transition-transform duration-200 ease-out motion-reduce:transition-none",
+          filled ? "scale-x-100" : "scale-x-0",
+        )}
+        style={filled ? { boxShadow: "0 0 4px var(--teal)" } : undefined}
+      />
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const { config, setProvider, setModel, setApiKey, reset } =
     useModelConfigStore();
@@ -40,35 +111,106 @@ export default function SettingsPage() {
   const [testStatus, setTestStatus] = useState<TestStatus>("idle");
   const [testMessage, setTestMessage] = useState("");
 
+  // Signal-chain state. `signalStage` = count of nodes that have confirmed
+  // (0..3); `failedNode` freezes the chain at the node where the signal died;
+  // `chainSettle` fires the one-shot success glow.
+  const [signalStage, setSignalStage] = useState(0);
+  const [failedNode, setFailedNode] = useState<number | null>(null);
+  const [chainSettle, setChainSettle] = useState(false);
+
+  // Mirror of signalStage read synchronously inside async error handling to
+  // decide which node failed (state updates are async and would lag).
+  const stageRef = useRef(0);
+  // Timers that stage PROVIDER / default-proxy nodes; cleared on any reset.
+  const stageTimersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
+
+  const setStage = useCallback((next: number) => {
+    stageRef.current = next;
+    setSignalStage(next);
+  }, []);
+
+  const clearStageTimers = useCallback(() => {
+    for (const timer of stageTimersRef.current) clearTimeout(timer);
+    stageTimersRef.current = [];
+  }, []);
+
+  const resetChain = useCallback(() => {
+    clearStageTimers();
+    setFailedNode(null);
+    setChainSettle(false);
+    setStage(0);
+  }, [clearStageTimers, setStage]);
+
+  // Clear pending stage timers if the page unmounts mid-test.
+  useEffect(() => clearStageTimers, [clearStageTimers]);
+
   const handleProviderChange = useCallback(
     (provider: ProviderKey) => {
       setProvider(provider);
       setTestStatus("idle");
       setTestMessage("");
+      resetChain();
     },
-    [setProvider],
+    [setProvider, resetChain],
   );
 
   const handleTestConnection = useCallback(async () => {
+    resetChain();
+
+    // Default proxy needs no key and is always available — stage the chain on
+    // timers so it still reads as signal flow, then confirm.
     if (config.provider === "default") {
-      setTestStatus("success");
-      setTestMessage("Default proxy is always available.");
+      setTestStatus("testing");
+      setTestMessage("");
+      setStage(1); // KEY — nothing to validate, passes immediately
+      stageTimersRef.current.push(setTimeout(() => setStage(2), 250));
+      stageTimersRef.current.push(
+        setTimeout(() => {
+          setStage(3);
+          setChainSettle(true);
+          setTestStatus("success");
+          setTestMessage("Default proxy is always available.");
+        }, 500),
+      );
       return;
     }
 
+    // KEY is validated locally — a missing key fails at the first node.
     if (!config.apiKey.trim()) {
+      setStage(0);
+      setFailedNode(0);
       setTestStatus("error");
       setTestMessage("Please enter an API key first.");
       return;
     }
 
+    // KEY passes locally → lights immediately.
+    setStage(1);
     setTestStatus("testing");
     setTestMessage("");
+
+    // PROVIDER lights once the request is plausibly in flight (~250ms). STREAM
+    // is only lit below, by real streamed bytes.
+    stageTimersRef.current.push(
+      setTimeout(() => {
+        if (stageRef.current < 2) setStage(2);
+      }, 250),
+    );
+
+    const succeed = () => {
+      clearStageTimers();
+      setFailedNode(null);
+      setStage(3);
+      setChainSettle(true);
+      setTestStatus("success");
+      setTestMessage("Connection successful! Your API key is valid.");
+    };
 
     const abortController = new AbortController();
     // Timeout after 15 seconds
     const timeout = setTimeout(() => abortController.abort(), 15_000);
 
+    let gotBytes = false;
     try {
       let receivedText = "";
       for await (const chunk of streamWithProvider(
@@ -79,23 +221,40 @@ export default function SettingsPage() {
         receivedText += chunk;
         // Stop early once we have enough to confirm it works
         if (receivedText.length > 10) {
+          gotBytes = true;
           abortController.abort();
           break;
         }
       }
-      setTestStatus("success");
-      setTestMessage("Connection successful! Your API key is valid.");
+      // Either broke early with bytes, or the stream ended cleanly.
+      if (gotBytes || receivedText.length > 0) {
+        succeed();
+      } else {
+        // Connected but produced nothing — treat the empty stream as a STREAM
+        // node failure rather than a false success.
+        clearStageTimers();
+        setFailedNode(2);
+        setStage(2);
+        setTestStatus("error");
+        setTestMessage("Connected, but the model returned no output.");
+      }
     } catch (error: unknown) {
+      // An abort AFTER we captured bytes is our own early stop — that's success.
       if (
         error instanceof DOMException &&
         error.name === "AbortError" &&
-        testStatus === "testing"
+        gotBytes
       ) {
-        // If we aborted because we already received text, that counts as success
-        setTestStatus("success");
-        setTestMessage("Connection successful! Your API key is valid.");
+        succeed();
         return;
       }
+      clearStageTimers();
+      // Freeze at the node that never confirmed: if only KEY is lit the
+      // provider handshake failed (node 1); if PROVIDER lit too, the stream
+      // failed (node 2).
+      const failIndex = Math.min(Math.max(stageRef.current, 1), 2);
+      setFailedNode(failIndex);
+      setStage(failIndex);
       const message =
         error instanceof Error ? error.message : "Connection failed";
       setTestStatus("error");
@@ -103,14 +262,15 @@ export default function SettingsPage() {
     } finally {
       clearTimeout(timeout);
     }
-  }, [config, testStatus]);
+  }, [config, resetChain, setStage, clearStageTimers]);
 
   const handleReset = useCallback(() => {
     reset();
     setTestStatus("idle");
     setTestMessage("");
     setShowApiKey(false);
-  }, [reset]);
+    resetChain();
+  }, [reset, resetChain]);
 
   const currentProviderLabel =
     PROVIDERS[config.provider]?.label ?? "Unknown";
@@ -144,11 +304,11 @@ export default function SettingsPage() {
       {/* Content */}
       <main className="max-w-3xl mx-auto px-5 py-8 space-y-6">
         {/* Security notice — TOP, prominent */}
-        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-5 py-4">
+        <div className="rounded-lg border border-[var(--teal)]/30 bg-[var(--teal-dim)] px-5 py-4">
           <div className="flex items-start gap-3">
-            <Shield className="size-5 text-emerald-500 shrink-0 mt-0.5" />
+            <Shield className="size-5 text-[var(--teal)] shrink-0 mt-0.5" />
             <div>
-              <h2 className="text-sm font-semibold text-emerald-400 mb-1">
+              <h2 className="text-sm font-semibold text-[var(--teal)] mb-1">
                 We never store your API keys.
               </h2>
               <p className="text-xs text-[var(--text-muted)] leading-relaxed">
@@ -181,64 +341,85 @@ export default function SettingsPage() {
                 ⚠ API key not set — using free tier (Default) until you add a key below
               </p>
             ) : (
-              <p className="text-xs text-emerald-500 mt-1">
+              <p className="text-xs text-[var(--teal)] mt-1">
                 ✓ API key configured — using your own key
               </p>
             )}
           </div>
         </GlassCard>
 
-        {/* Provider selection */}
+        {/* Provider selection — a rack of signal channels */}
         <GlassCard>
           <div className="px-5 py-4 space-y-4">
             <h2 className="font-mono text-xs uppercase tracking-wider text-[var(--amber)]">
               AI Provider
             </h2>
 
-            <div className="grid gap-2">
-              {PROVIDER_KEYS.map((providerKey) => {
+            <div className="grid gap-2" role="radiogroup" aria-label="AI Provider">
+              {PROVIDER_KEYS.map((providerKey, index) => {
                 const meta = PROVIDERS[providerKey];
                 if (!meta) return null;
                 const isSelected = config.provider === providerKey;
+                const isDefault = providerKey === "default";
+                // LED is lit only when this channel is selected AND active: the
+                // free default (amber) or a provider with a key entered (teal).
+                const ledLit =
+                  isSelected && (isDefault || config.apiKey.trim().length > 0);
+                const ledColor = isDefault ? "var(--amber)" : "var(--teal)";
 
                 return (
-                  <button
+                  <label
                     key={providerKey}
-                    type="button"
-                    onClick={() => handleProviderChange(providerKey)}
-                    className={cn(
-                      "w-full text-left px-4 py-3 rounded-lg border transition-all",
-                      isSelected
-                        ? "border-[var(--amber)] bg-[var(--amber-dim)]"
-                        : "border-[var(--border)] hover:border-[var(--text-muted)] bg-transparent",
-                    )}
+                    className="block cursor-pointer"
                   >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={cn(
-                          "size-3 rounded-full border-2 flex-shrink-0 transition-colors",
-                          isSelected
-                            ? "border-[var(--amber)] bg-[var(--amber)]"
-                            : "border-[var(--text-muted)] bg-transparent",
-                        )}
-                      />
-                      <div>
-                        <p
-                          className={cn(
-                            "text-sm font-medium",
-                            isSelected
-                              ? "text-[var(--text)]"
-                              : "text-[var(--text)]",
-                          )}
-                        >
+                    <input
+                      type="radio"
+                      name="ai-provider"
+                      value={providerKey}
+                      checked={isSelected}
+                      onChange={() => handleProviderChange(providerKey)}
+                      className="peer sr-only"
+                    />
+                    <div
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-3 rounded-lg border transition-all duration-150 ease-out",
+                        isSelected
+                          ? "border-[var(--amber)]/40 bg-[var(--amber-dim)]"
+                          : "border-[var(--border)] bg-transparent hover:border-[var(--text-muted)] hover:bg-[var(--hover)]",
+                        "peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--amber)] peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-[var(--bg)]",
+                      )}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <span className="block font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-muted)]">
+                          {channelTag(providerKey, index)}
+                        </span>
+                        <p className="text-sm font-medium text-[var(--text)] mt-0.5">
                           {meta.label}
                         </p>
-                        <p className="text-xs text-[var(--text-muted)]">
+                        <p className="text-xs text-[var(--text-muted)] mt-0.5">
                           {meta.description}
                         </p>
                       </div>
+                      {/* LED status dot — steady when the channel is live. */}
+                      <span
+                        aria-hidden="true"
+                        className={cn(
+                          "size-2.5 rounded-full border shrink-0 transition-[background-color,box-shadow,border-color] duration-150 ease-out motion-reduce:transition-none",
+                          ledLit
+                            ? "border-transparent"
+                            : "bg-transparent border-[var(--text-muted)]",
+                        )}
+                        style={
+                          ledLit
+                            ? {
+                                backgroundColor: ledColor,
+                                boxShadow: `0 0 6px ${ledColor}`,
+                              }
+                            : undefined
+                        }
+                      />
                     </div>
-                  </button>
+                  </label>
                 );
               })}
             </div>
@@ -323,6 +504,7 @@ export default function SettingsPage() {
                     setApiKey(e.target.value);
                     setTestStatus("idle");
                     setTestMessage("");
+                    resetChain();
                   }}
                   placeholder={`Enter your ${PROVIDERS[config.provider]?.label ?? ""} API key`}
                   className={cn(
@@ -371,18 +553,48 @@ export default function SettingsPage() {
                     "Test Connection"
                   )}
                 </button>
+              </div>
 
-                {testStatus === "success" && (
-                  <span className="inline-flex items-center gap-1 text-xs text-emerald-500">
-                    <CheckCircle2 className="size-3.5" />
-                    {testMessage}
-                  </span>
+              {/* Signal chain — KEY → PROVIDER → STREAM. Always visible; nodes
+                  light as the test advances and freeze on failure. */}
+              <div
+                className={cn(
+                  "rounded-lg",
+                  chainSettle && "signal-chain-settle",
                 )}
+                onAnimationEnd={() => setChainSettle(false)}
+              >
+                <div
+                  className="flex items-center gap-2 py-1"
+                  role="status"
+                  aria-live="polite"
+                >
+                  {SIGNAL_NODES.map((label, i) => {
+                    const state: NodeState =
+                      failedNode === i
+                        ? "error"
+                        : i < signalStage
+                          ? "lit"
+                          : "dim";
+                    return (
+                      <Fragment key={label}>
+                        {i > 0 && (
+                          <SignalSegment filled={signalStage >= i + 1} />
+                        )}
+                        <SignalNode label={label} state={state} />
+                      </Fragment>
+                    );
+                  })}
+                </div>
                 {testStatus === "error" && (
-                  <span className="inline-flex items-center gap-1 text-xs text-[var(--error)]">
-                    <XCircle className="size-3.5" />
+                  <p className="mt-2 text-xs text-[var(--error)]">
                     {testMessage}
-                  </span>
+                  </p>
+                )}
+                {testStatus === "success" && (
+                  <p className="mt-2 text-xs text-[var(--teal)]">
+                    {testMessage}
+                  </p>
                 )}
               </div>
             </div>

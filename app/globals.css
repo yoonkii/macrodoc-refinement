@@ -477,8 +477,41 @@ body {
   animation: crt-off 350ms ease-in forwards;
 }
 
+/* ────────────────────────────────────────────────────
+   Settings signal-chain — KEY → PROVIDER → STREAM
+   ──────────────────────────────────────────────────── */
+
+/* Failing node: two quick blinks, then it settles (no infinite flashing).
+   Colour is applied by the node class; this only pulses opacity. */
+@keyframes signal-error-blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.25; }
+  100% { opacity: 1; }
+}
+
+.signal-node-error-blink {
+  animation: signal-error-blink 140ms ease-out 2 both;
+}
+
+/* Success settle: a single short teal breathe on the chain container. */
+@keyframes signal-chain-settle {
+  0% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+  40% { box-shadow: 0 0 12px 0 var(--teal-dim); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+}
+
+.signal-chain-settle {
+  animation: signal-chain-settle 250ms ease-out;
+}
+
 /* Respect reduced-motion: disable bloom/pulse/glow and the ambient raise */
 @media (prefers-reduced-motion: reduce) {
+  .signal-node-error-blink {
+    animation: none;
+  }
+  .signal-chain-settle {
+    animation: none;
+  }
   .token-bloom {
     animation: none;
   }

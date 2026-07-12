@@ -10,6 +10,7 @@ import { streamWithProvider } from '../byom-api';
 import { MAX_CHARACTERS } from '../constants';
 import { buildRefinementPrompt } from '../prompt-builder';
 import { captureScrubbedError } from '../sentry';
+import { transportClick, tapeStop } from '../sound';
 import { useModelConfigStore } from './model-config';
 import type { StyleProfile } from '../types';
 
@@ -46,6 +47,11 @@ let abortController: AbortController | null = null;
 // auto-refine. Voice dictation flips this on so streaming appended transcripts
 // don't spam the API; the caller fires a single processNow() on stop.
 let suppressAutoRefine = false;
+
+// Set by the explicit processNow() action and consumed by the owning
+// processText() run. Only an explicitly-triggered refinement plays the
+// tape-transport completion sound — the 300ms auto-refine debounce never does.
+let explicitRefinePending = false;
 
 /**
  * Stable change-detection key for the active profile set. Includes every field
@@ -93,6 +99,11 @@ function cancelActiveStream(): void {
 export const useTextRefineStore = create<TextRefineStore>((set, get) => {
   /** Core processing logic — aborts previous stream, builds prompt, streams. */
   async function processText(text: string): Promise<void> {
+    // Claim the explicit-trigger flag for this run only. Auto-refine paths never
+    // set it, so wasExplicit is false for them and no completion sound plays.
+    const wasExplicit = explicitRefinePending;
+    explicitRefinePending = false;
+
     if (text.length === 0) {
       set({ refinedText: '' });
       return;
@@ -151,6 +162,12 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
         // Check if we were aborted between chunks
         if (signal.aborted) return;
         set((state) => ({ refinedText: state.refinedText + chunk }));
+      }
+
+      // Reached here only on a clean, non-aborted completion. An explicitly
+      // triggered refine earns the tape-stop "thunk"; auto-refine stays silent.
+      if (wasExplicit && !signal.aborted) {
+        tapeStop();
       }
     } catch (error: unknown) {
       // Aborted streams are not errors
@@ -242,6 +259,11 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
         // Cancel any pending debounce
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = null;
+        // Explicit trigger: play the transport click now (this action runs
+        // inside a user gesture, which unlocks the AudioContext) and mark the
+        // run so its successful completion plays the tape-stop sound.
+        explicitRefinePending = true;
+        transportClick();
         processText(inputText);
       }
     },
