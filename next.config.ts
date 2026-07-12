@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
         headers: [
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
+          // Firebase signInWithPopup needs the opener relationship; explicit same-origin-allow-popups prevents a future stricter COOP from breaking sign-in (the SDK's window.closed polling warnings from Google's own pages remain benign).
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=()' },
           {

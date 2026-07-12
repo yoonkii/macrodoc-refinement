@@ -15,13 +15,52 @@ import { StylePanel } from "@/components/style-panel";
 import { GlassCard } from "@/components/glass-card";
 import { VoiceCloneDialog } from "@/components/voice-clone-dialog";
 import { MdrTipToast } from "@/components/mdr-tip-toast";
+import {
+  SplitHandle,
+  clampSplitRatio,
+  SPLIT_DEFAULT,
+} from "@/components/split-handle";
 import Link from "next/link";
 
 const PROOFREAD_ONLY_NAME = "Proofread Only";
+const SPLIT_RATIO_STORAGE_KEY = "mdr-split-ratio";
 
 export default function Home() {
   const [showStylePanel, setShowStylePanel] = useState(true);
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
+
+  // Resizable input/output split (desktop only). Default to a 50/50 split for
+  // SSR + first client render to avoid a hydration mismatch; the persisted ratio
+  // is applied after mount.
+  const [splitRatio, setSplitRatio] = useState(SPLIT_DEFAULT);
+  const [splitMounted, setSplitMounted] = useState(false);
+  const [isResizingSplit, setIsResizingSplit] = useState(false);
+  const splitContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(SPLIT_RATIO_STORAGE_KEY);
+      if (stored !== null) {
+        setSplitRatio(clampSplitRatio(Number.parseFloat(stored)));
+      }
+    } catch {
+      // localStorage may be unavailable (private mode, blocked storage); keep default.
+    }
+    setSplitMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!splitMounted) return;
+    try {
+      window.localStorage.setItem(SPLIT_RATIO_STORAGE_KEY, String(splitRatio));
+    } catch {
+      // Ignore persistence failures — the split still works for this session.
+    }
+  }, [splitRatio, splitMounted]);
+
+  const handleSplitRatioChange = useCallback((next: number) => {
+    setSplitRatio(clampSplitRatio(next));
+  }, []);
 
   const textRefineStore = useTextRefineStore();
   const toneStore = useToneStore();
@@ -102,14 +141,43 @@ export default function Home() {
       <main className="flex-1 flex flex-col min-h-0">
         <div className="flex flex-1 p-4 md:p-5 gap-3 md:gap-4 min-h-0">
           {/* Editor area — just the split pane, nothing else */}
-          <div className="flex-[3] flex md:flex-row flex-col gap-3 md:gap-4 min-h-0 min-w-0">
+          <div
+            ref={splitContainerRef}
+            // --split-left / --split-right drive flex-grow on md+; on the stacked
+            // mobile layout the cards fall back to their base `flex-1`. While
+            // dragging we freeze descendant transitions so the split tracks the
+            // pointer 1:1 with no easing lag.
+            style={
+              {
+                "--split-left": splitRatio,
+                "--split-right": 1 - splitRatio,
+              } as React.CSSProperties
+            }
+            className={`flex-[3] flex md:flex-row flex-col gap-3 md:gap-4 min-h-0 min-w-0${
+              isResizingSplit ? " select-none [&_*]:transition-none!" : ""
+            }`}
+          >
             {/* min-w-0 keeps the panes at equal width even when the output
                 contains an unbreakable token (URL, hashtag chain) — without it
-                a flex item's min-width:auto lets content blow the pane out. */}
-            <GlassCard className="flex-1 min-w-0 min-h-0" innerClassName="flex flex-col">
+                a flex item's min-width:auto lets content blow the pane out.
+                On md+ the panes switch to basis-0 and a ratio-driven flex-grow
+                (see the split CSS vars above) while preserving that containment. */}
+            <GlassCard
+              className="flex-1 min-w-0 min-h-0 md:basis-0 md:grow-[var(--split-left)]"
+              innerClassName="flex flex-col"
+            >
               <InputPanel />
             </GlassCard>
-            <GlassCard className="flex-1 min-w-0 min-h-0" innerClassName="flex flex-col">
+            <SplitHandle
+              ratio={splitRatio}
+              onRatioChange={handleSplitRatioChange}
+              containerRef={splitContainerRef}
+              onDraggingChange={setIsResizingSplit}
+            />
+            <GlassCard
+              className="flex-1 min-w-0 min-h-0 md:basis-0 md:grow-[var(--split-right)]"
+              innerClassName="flex flex-col"
+            >
               <OutputPanel />
             </GlassCard>
           </div>

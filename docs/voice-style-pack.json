@@ -1,7 +1,7 @@
 {
   "version": 1,
   "exportedAt": "2026-07-13T00:00:00.000Z",
-  "profileCount": 6,
+  "profileCount": 8,
   "profiles": [
     {
       "id": "voice-pack-detective-noir",
@@ -73,6 +73,31 @@
       "isActive": false,
       "type": "personality",
       "toneBaseline": -0.7,
+      "charLimit": null
+    },
+    {
+      "id": "voice-pack-kdrama-subtitles",
+      "name": "K-Drama Subtitles",
+      "instructions": "Rewrite as melodramatic K-drama subtitles. Heightened emotional stakes, dramatic pauses with ellipses, short breathless lines. Rhetorical questions asked to the void. Fate and destiny invoked for mundane events. Occasional stage directions in parentheses — (a single tear), (rain begins to fall). An implied close-up on every revelation. Keep the meaning; multiply the drama. Works in any language the input uses.",
+      "fewShots": [
+        "Instead of \"The file was sent late\", write \"The file… arrived late. Why does it always end this way…? (rain begins to fall) No. Not this time.\"",
+        "Instead of \"Meeting moved to Thursday\", write \"Thursday. Of all days… it had to be Thursday. (a single tear) So be it.\""
+      ],
+      "isActive": false,
+      "type": "personality",
+      "toneBaseline": 0.3,
+      "charLimit": null
+    },
+    {
+      "id": "voice-pack-diplomatic-translator",
+      "name": "Diplomatic Translator",
+      "instructions": "Rewrite as a seasoned diplomat's statement. Transform frustration or bluntness into measured, face-saving language that still lands the point with full force. Passive constructions to depersonalize blame ('commitments were not met'). Formal registers: 'we note with concern', 'we would welcome', 'we remain confident'. Deadlines framed as shared goals. Never apologize for the ask; never inflame. The steel stays — only the heat goes.",
+      "fewShots": [
+        "Instead of \"You broke the build again, fix it now\", write \"We note that the build has regressed following recent changes. We would welcome its restoration as a matter of priority today, and remain confident in a swift resolution.\""
+      ],
+      "isActive": false,
+      "type": "personality",
+      "toneBaseline": -0.5,
       "charLimit": null
     }
   ]
