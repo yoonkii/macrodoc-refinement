@@ -102,10 +102,13 @@ export default function Home() {
         <div className="flex flex-1 p-4 md:p-5 gap-3 md:gap-4 min-h-0">
           {/* Editor area — just the split pane, nothing else */}
           <div className="flex-[3] flex md:flex-row flex-col gap-3 md:gap-4 min-h-0 min-w-0">
-            <GlassCard className="flex-1 min-h-0" innerClassName="flex flex-col">
+            {/* min-w-0 keeps the panes at equal width even when the output
+                contains an unbreakable token (URL, hashtag chain) — without it
+                a flex item's min-width:auto lets content blow the pane out. */}
+            <GlassCard className="flex-1 min-w-0 min-h-0" innerClassName="flex flex-col">
               <InputPanel />
             </GlassCard>
-            <GlassCard className="flex-1 min-h-0" innerClassName="flex flex-col">
+            <GlassCard className="flex-1 min-w-0 min-h-0" innerClassName="flex flex-col">
               <OutputPanel />
             </GlassCard>
           </div>

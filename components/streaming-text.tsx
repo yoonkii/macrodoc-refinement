@@ -80,7 +80,7 @@ export function StreamingText({ text, isStreaming }: StreamingTextProps) {
   const { head, tail } = useMemo(() => splitFreshTail(text), [text]);
 
   return (
-    <p className="font-sans text-sm text-[var(--text)] leading-relaxed whitespace-pre-wrap select-text">
+    <p className="font-sans text-sm text-[var(--text)] leading-relaxed whitespace-pre-wrap break-words select-text">
       {head}
       {tail.map((token, index) =>
         token.isWord ? (

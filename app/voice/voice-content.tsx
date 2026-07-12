@@ -197,7 +197,7 @@ export function VoiceContent() {
       {/* Two-column layout */}
       <main className="flex-1 flex flex-col lg:flex-row min-h-0 p-4 md:p-5 gap-4">
         {/* Left column: samples + editable analysis */}
-        <div className="lg:flex-1 min-h-0 overflow-y-auto">
+        <div className="lg:flex-1 min-w-0 min-h-0 overflow-y-auto">
           <GlassCard className="h-full" innerClassName="flex flex-col p-5">
             <h2 className={cn(MONO_LABEL, "mb-4")}>Your writing</h2>
 
@@ -378,7 +378,7 @@ export function VoiceContent() {
         </div>
 
         {/* Right column: live test */}
-        <div className="lg:flex-1 min-h-0 flex flex-col">
+        <div className="lg:flex-1 min-w-0 min-h-0 flex flex-col">
           <GlassCard className="h-full" innerClassName="flex flex-col p-5">
             <h2 className={cn(MONO_LABEL, "mb-4")}>Test your voice</h2>
 
