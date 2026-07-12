@@ -53,8 +53,9 @@ export default function LegalPage() {
             the transcript.
           </LegalSubsection>
           <LegalSubsection title="Usage Analytics and Error Reporting:">
-            We collect anonymous usage analytics (via Vercel Analytics and Speed
-            Insights) to understand aggregate traffic and performance. When error
+            We collect anonymous usage analytics (via Vercel Analytics, Speed
+            Insights, and PostHog anonymous product-usage events) to understand
+            aggregate traffic, performance, and feature usage. When error
             reporting is enabled, we also collect anonymous error diagnostics
             (via Sentry) to help us fix problems. These tools do not receive the
             text you submit, the refined output, or your API keys &mdash; error

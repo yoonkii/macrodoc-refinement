@@ -16,6 +16,7 @@ import {
   type User,
 } from 'firebase/auth';
 
+import { track } from '../analytics';
 import { getFirebaseAuth } from '../firebase';
 
 /** Minimal, serializable projection of the Firebase user we actually render. */
@@ -90,6 +91,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
       const provider = new GoogleAuthProvider();
       await signInWithPopup(getFirebaseAuth(), provider);
       // onAuthStateChanged updates `user`; nothing to set here on success.
+      // Anonymous sign-in signal — no uid or email is ever attached.
+      track('signed_in');
     } catch (error: unknown) {
       const message = describeSignInError(error);
       if (message) set({ error: message });

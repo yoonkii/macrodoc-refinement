@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 
 import { streamRefine } from '../api';
+import { track } from '../analytics';
 import { streamWithProvider } from '../byom-api';
 import { MAX_CHARACTERS } from '../constants';
 import { buildRefinementPrompt } from '../prompt-builder';
@@ -71,6 +72,18 @@ function activeProfilesKey(profiles: StyleProfile[]): string {
       toneBaseline: profile.toneBaseline,
     })),
   );
+}
+
+/**
+ * Bucket a refinement failure into a coarse, non-identifying kind for analytics.
+ * We match on the message shape but NEVER forward the message itself — only the
+ * enum leaves the browser.
+ */
+function classifyRefineError(error: unknown): 'timeout' | 'budget' | 'other' {
+  const message = error instanceof Error ? error.message : String(error);
+  if (/timed out/i.test(message)) return 'timeout';
+  if (/budget|Daily/i.test(message)) return 'budget';
+  return 'other';
 }
 
 /**
@@ -148,12 +161,17 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
       personalityMode,
     });
 
-    try {
-      const modelConfig = useModelConfigStore.getState().config;
+    const modelConfig = useModelConfigStore.getState().config;
 
-      // Route to BYOM provider or default Cloud Run proxy
-      // Fall back to default if provider is set but API key is missing
-      const useDefault = modelConfig.provider === 'default' || !modelConfig.apiKey.trim();
+    // Route to BYOM provider or default Cloud Run proxy
+    // Fall back to default if provider is set but API key is missing
+    const useDefault = modelConfig.provider === 'default' || !modelConfig.apiKey.trim();
+    // Report the provider/model that actually served this request so analytics
+    // reflect the effective route, not a misconfigured BYOM setting we ignored.
+    const effectiveProvider = useDefault ? 'default' : modelConfig.provider;
+    const analyticsStartedAt = Date.now();
+
+    try {
       const stream = useDefault
         ? streamRefine(prompt, signal)
         : streamWithProvider(prompt, modelConfig, signal);
@@ -169,12 +187,29 @@ export const useTextRefineStore = create<TextRefineStore>((set, get) => {
       if (wasExplicit && !signal.aborted) {
         tapeStop();
       }
+
+      // Anonymous success signal — counts and durations only, never text.
+      if (!signal.aborted) {
+        track('refine_completed', {
+          provider: effectiveProvider,
+          model: modelConfig.model,
+          trigger: wasExplicit ? 'explicit' : 'auto',
+          duration_ms: Date.now() - analyticsStartedAt,
+          input_chars: truncatedText.length,
+        });
+      }
     } catch (error: unknown) {
       // Aborted streams are not errors
       if (error instanceof DOMException && error.name === 'AbortError') return;
       if (signal.aborted) return;
 
       captureScrubbedError(error, 'text-refine.processText');
+
+      // Coarse failure kind only — the raw message never leaves the browser.
+      track('refine_failed', {
+        provider: effectiveProvider,
+        kind: classifyRefineError(error),
+      });
 
       const message =
         error instanceof Error ? error.message : 'An unexpected error occurred';

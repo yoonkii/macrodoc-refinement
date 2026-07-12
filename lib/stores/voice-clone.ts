@@ -13,6 +13,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import { generateBatch } from '../api';
+import { track } from '../analytics';
 import { generateWithProvider } from '../byom-api';
 import { buildVoiceAnalysisPrompt } from '../voice-analysis';
 import type { StyleProfile } from '../types';
@@ -171,6 +172,17 @@ export const useVoiceCloneStore = create<VoiceCloneStore>()(
             set({ analysisError: EMPTY_ANALYSIS_MESSAGE });
             return null;
           }
+
+          // Anonymous signal — sample count and aggregate length only, never
+          // the sample text or the analysis output.
+          track('voice_analyzed', {
+            samples: usableSamples.length,
+            total_chars: usableSamples.reduce(
+              (sum, sample) => sum + sample.length,
+              0,
+            ),
+          });
+
           return analysis;
         } catch (error: unknown) {
           const message =
@@ -186,6 +198,13 @@ export const useVoiceCloneStore = create<VoiceCloneStore>()(
 
       // ── Save handoff ──
       saveProfile(input: SaveVoiceProfileInput): void {
+        // Anonymous signal — counts only, never the sample or excerpt text.
+        track('voice_cloned', {
+          samples: get().samples.filter((sample) => sample.trim().length > 0)
+            .length,
+          excerpts: input.fewShots.length,
+        });
+
         const styleStore = useStyleProfilesStore.getState();
         const linkedId = get().linkedProfileId;
         const existing = linkedId
