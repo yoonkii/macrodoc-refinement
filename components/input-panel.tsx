@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { X, ClipboardPaste, RefreshCw, Mic } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { track } from "@/lib/analytics";
 import { useTextRefineStore } from "@/lib/stores/text-refine";
 import { useSpeechInput } from "@/lib/use-speech-input";
 import { MAX_CHARACTERS, DEMO_SAMPLES } from "@/lib/constants";
@@ -89,7 +90,10 @@ export function InputPanel() {
     }
   }
 
-  function handleDemoSample(text: string) {
+  function handleDemoSample(text: string, label: string) {
+    // The chip label is fixed app copy (see DEMO_SAMPLES), not user-written
+    // content — safe to record. The sample text itself is never sent.
+    track("demo_chip_used", { label });
     // Push into the store (the sync effect mirrors it into the uncontrolled
     // textarea) and refine immediately, skipping the type-debounce.
     store.setInputText(text);
@@ -170,7 +174,7 @@ export function InputPanel() {
               <button
                 key={sample.label}
                 type="button"
-                onClick={() => handleDemoSample(sample.text)}
+                onClick={() => handleDemoSample(sample.text, sample.label)}
                 className={cn(
                   "font-mono text-[11px] uppercase tracking-[0.08em]",
                   "px-2.5 py-1.5 rounded-md border border-[var(--border)]",

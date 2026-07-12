@@ -23,7 +23,9 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               // Firebase Auth talks to identitytoolkit/securetoken; the popup handler
               // lives on the firebaseapp.com authDomain. Sentry ingest for error reports.
-              "connect-src 'self' https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com https://api.x.ai https://*.run.app https://va.vercel-scripts.com https://vitals.vercel-insights.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseapp.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io",
+              // us.i.posthog.com receives anonymous product-usage events (SDK is
+              // bundled; session recording + surveys disabled, so no asset host).
+              "connect-src 'self' https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com https://api.x.ai https://*.run.app https://va.vercel-scripts.com https://vitals.vercel-insights.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseapp.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://us.i.posthog.com",
               // The Google sign-in popup/iframe is served from these origins.
               "frame-src 'self' https://apis.google.com https://accounts.google.com https://macro-doc-refinement-8d9fa.firebaseapp.com",
               // Google account avatars (photoURL) come from googleusercontent.com.

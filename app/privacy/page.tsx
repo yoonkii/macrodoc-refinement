@@ -84,9 +84,11 @@ export default function PrivacyPage() {
           </PrivacySubsection>
           <PrivacySubsection title="Usage Analytics:">
             We collect anonymous, aggregate usage and performance analytics
-            through Vercel Analytics and Speed Insights to understand traffic and
-            keep the app fast. These tools do not receive the text you submit, the
-            refined output, or your API keys.
+            through Vercel Analytics, Speed Insights, and PostHog to understand
+            traffic and keep the app fast. PostHog records only anonymous
+            product-usage events (for example, that a refinement completed or a
+            feature was used) built from counts and settings — never the text you
+            submit, the refined output, your writing samples, or your API keys.
           </PrivacySubsection>
           <PrivacySubsection title="Error Diagnostics:">
             When error reporting is enabled, we collect anonymous error

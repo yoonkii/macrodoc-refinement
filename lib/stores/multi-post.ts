@@ -7,6 +7,7 @@ import { create } from 'zustand';
 
 import { generateMultiPost } from '../api';
 import type { MultiPostResult } from '../api';
+import { track } from '../analytics';
 import { generateWithProvider } from '../byom-api';
 import { PLATFORM_KEYS } from '../types';
 import type { StyleProfile } from '../types';
@@ -109,6 +110,11 @@ export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
       errorMessage: '',
     });
 
+    const modelConfig = useModelConfigStore.getState().config;
+    const useDefault = modelConfig.provider === 'default' || !modelConfig.apiKey.trim();
+    // Effective route, so analytics reflect what actually served the request.
+    const effectiveProvider = useDefault ? 'default' : modelConfig.provider;
+
     try {
       const prompt = buildMultiPostPrompt({
         inputText,
@@ -116,8 +122,6 @@ export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
         toneValue,
       });
 
-      const modelConfig = useModelConfigStore.getState().config;
-      const useDefault = modelConfig.provider === 'default' || !modelConfig.apiKey.trim();
       const results = useDefault
         ? await generateMultiPost(prompt, signal)
         : await generateMultiPostViaBYOM(prompt, signal);
@@ -137,6 +141,14 @@ export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
       }
 
       set({ platformOutputs: outputs, platformErrors: errors });
+
+      // Anonymous per-platform success/failure counts — no generated text.
+      const platformsFailed = PLATFORM_KEYS.filter((key) => errors[key]).length;
+      track('multi_post_generated', {
+        provider: effectiveProvider,
+        platforms_ok: PLATFORM_KEYS.length - platformsFailed,
+        platforms_failed: platformsFailed,
+      });
     } catch (error: unknown) {
       // Aborted requests are not errors
       if (error instanceof DOMException && error.name === 'AbortError') return;
@@ -156,6 +168,13 @@ export const useMultiPostStore = create<MultiPostStore>((set, get) => ({
       }
 
       set({ errorMessage: message, platformErrors: errors });
+
+      // Total failure — every platform failed.
+      track('multi_post_generated', {
+        provider: effectiveProvider,
+        platforms_ok: 0,
+        platforms_failed: PLATFORM_KEYS.length,
+      });
     } finally {
       if (!signal.aborted) {
         set({ isGenerating: false });

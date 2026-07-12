@@ -7,6 +7,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { SITE_URL } from "@/lib/constants";
 import { SentryInit } from "@/components/sentry-init";
+import { AnalyticsInit } from "@/components/analytics-init";
 import { ThemeProvider, THEME_INIT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
@@ -74,6 +75,7 @@ export default function RootLayout({
         <ThemeProvider>
           {children}
           <SentryInit />
+          <AnalyticsInit />
           <Analytics />
           <SpeedInsights />
         </ThemeProvider>

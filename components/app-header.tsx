@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useTheme } from "@/lib/theme";
 import { Sun, Moon, Monitor, Info, PanelRightOpen, PanelRightClose, Menu, FlaskConical, Settings, Puzzle, Volume2, VolumeX } from "lucide-react";
 import { isSoundEnabled, setSoundEnabled, transportClick } from "@/lib/sound";
+import { track } from "@/lib/analytics";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -53,7 +54,10 @@ export function AppHeader({
     const next = !soundOn;
     setSoundEnabled(next);
     setSoundOn(next);
-    if (next) transportClick();
+    if (next) {
+      track("sound_enabled");
+      transportClick();
+    }
   }
 
   /** Trigger the CRT power-off overlay, unless the user prefers reduced motion. */
@@ -90,6 +94,8 @@ export function AppHeader({
         document.documentElement.classList.add("crt-flash");
         setTimeout(() => document.documentElement.classList.remove("crt-flash"), 400);
         setTheme("mdr");
+        // Anonymous easter-egg engagement signal.
+        track("mdr_mode_entered");
       }
       return;
     }
