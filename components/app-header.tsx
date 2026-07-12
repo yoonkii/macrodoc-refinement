@@ -6,6 +6,7 @@ import { Sun, Moon, Monitor, Info, PanelRightOpen, PanelRightClose, Menu, FlaskC
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { AuthButton } from "@/components/auth-button";
 import {
   Dialog,
   DialogContent,
@@ -174,6 +175,9 @@ export function AppHeader({
               <TooltipContent side="bottom">Get Puzzle Extension</TooltipContent>
             </Tooltip>
           </TooltipProvider>
+
+          {/* Google sign-in / account menu */}
+          <AuthButton />
 
           {/* Theme toggle */}
           <button
