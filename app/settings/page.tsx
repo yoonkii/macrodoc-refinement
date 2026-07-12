@@ -408,9 +408,23 @@ export default function SettingsPage() {
               Rate Limits
             </h2>
             <p className="text-sm text-[var(--text)]">
-              The free tier uses our shared Gemini Flash Lite instance (15
-              requests/minute).
+              The free tier uses our shared Gemini Flash Lite instance. Signing
+              in with Google lifts your limit:
             </p>
+            <ul className="text-sm text-[var(--text)] space-y-1">
+              <li className="flex items-baseline gap-2">
+                <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--text-muted)] shrink-0">
+                  Signed out
+                </span>
+                <span>15 requests/min</span>
+              </li>
+              <li className="flex items-baseline gap-2">
+                <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-[var(--amber)] shrink-0">
+                  Signed in with Google
+                </span>
+                <span>40 requests/min</span>
+              </li>
+            </ul>
             <p className="text-sm text-[var(--text)]">
               Add your own API key for unlimited usage with your preferred
               model.

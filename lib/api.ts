@@ -4,6 +4,27 @@
 // ---------------------------------------------------------------------------
 
 import { MODEL_NAME, PROXY_URL } from './constants';
+import { getIdToken } from './stores/auth';
+
+// ── Auth header ──────────────────────────────────────────────────────────────
+
+/**
+ * Build the request headers for a proxy call, attaching
+ * `Authorization: Bearer <idToken>` when the user is signed in with Google.
+ *
+ * The proxy reads this token to grant the signed-in rate-limit tier. When
+ * signed out (`getIdToken()` resolves to `null`) the header is omitted and the
+ * proxy falls back to the anonymous, IP-keyed tier. This header is NEVER sent to
+ * BYOM providers — those calls live in `byom-api.ts`, not here.
+ */
+async function buildProxyHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const idToken = await getIdToken();
+  if (idToken) {
+    headers['Authorization'] = `Bearer ${idToken}`;
+  }
+  return headers;
+}
 
 // ── Streaming inactivity watchdog ───────────────────────────────────────────
 
@@ -50,7 +71,7 @@ export async function* streamRefine(
 ): AsyncGenerator<string> {
   const response = await fetch(`${PROXY_URL}/api/stream`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await buildProxyHeaders(),
     body: JSON.stringify({ prompt, model: MODEL_NAME }),
     signal,
   });
@@ -143,7 +164,7 @@ export async function* streamRefine(
 export async function generateBatch(prompt: string): Promise<string> {
   const response = await fetch(`${PROXY_URL}/api/generate`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await buildProxyHeaders(),
     body: JSON.stringify({ prompt, model: MODEL_NAME }),
   });
 
@@ -197,7 +218,7 @@ export async function generateMultiPost(
 ): Promise<MultiPostResult> {
   const response = await fetch(`${PROXY_URL}/api/multi-post`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await buildProxyHeaders(),
     body: JSON.stringify({ prompt, model: MODEL_NAME }),
     signal,
   });

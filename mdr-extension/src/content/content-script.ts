@@ -33,6 +33,9 @@ let widgetButton: HTMLButtonElement | null = null;
 let widgetLabel: HTMLElement | null = null;
 let currentSelectedText = '';
 let capturedTarget: CapturedTarget | null = null;
+// Set when a refinement is triggered from a context-menu variant so the service
+// worker can apply that item's preset. Null for the plain inline widget path.
+let currentMenuId: string | null = null;
 let isRefining = false;
 let inlineWidgetEnabled = true;
 let inactivityTimerId: number | null = null;
@@ -191,6 +194,9 @@ function showWidget(x: number, y: number, text: string): void {
 
   const { host } = ensureWidget();
   currentSelectedText = text;
+  // The inline widget uses no preset; clear any menu id left from a prior
+  // right-click refinement.
+  currentMenuId = null;
   captureTarget();
 
   // Reset any lingering error state from a previous failed refinement so a
@@ -299,7 +305,7 @@ function handleRefineClick(): void {
   });
 
   startInactivityTimer();
-  port.postMessage({ text: currentSelectedText });
+  port.postMessage({ text: currentSelectedText, menuId: currentMenuId ?? undefined });
 }
 
 function clearInactivityTimer(): void {
@@ -480,7 +486,11 @@ function isMdrDomain(): boolean {
   if (hostname === 'macrodocrefinement.com' || hostname.endsWith('.macrodocrefinement.com')) {
     return true;
   }
-  if (hostname === 'localhost' && port === MDR_LOCALHOST_PORT) {
+  // Only trust localhost in dev builds. import.meta.env.DEV is statically
+  // replaced with `false` in the production bundle, so a shipped extension will
+  // never treat an arbitrary localhost:3000 app as the MDR web app (which could
+  // otherwise inject style profiles into extension storage).
+  if (import.meta.env.DEV && hostname === 'localhost' && port === MDR_LOCALHOST_PORT) {
     return true;
   }
   return false;
@@ -621,6 +631,11 @@ chrome.runtime.onMessage.addListener(
   (message: { type: string; text?: string; menuId?: string }, _sender, sendResponse) => {
     if (message.type === 'REFINE_SELECTION' && message.text) {
       currentSelectedText = message.text;
+      // Preserve the originating context-menu item so its preset is applied.
+      // The parent "refine-selection" item carries no preset — treat it as the
+      // plain refinement (null) so it behaves like the inline widget.
+      currentMenuId =
+        message.menuId && message.menuId !== 'refine-selection' ? message.menuId : null;
       // Capture the target now (right-click keeps focus on the field) so the
       // replacement path has a reference even without the floating widget.
       captureTarget();
