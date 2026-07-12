@@ -14,6 +14,7 @@ import { OutputPanel } from "@/components/output-panel";
 import { StylePanel } from "@/components/style-panel";
 import { GlassCard } from "@/components/glass-card";
 import { VoiceCloneDialog } from "@/components/voice-clone-dialog";
+import { MdrTipToast } from "@/components/mdr-tip-toast";
 import Link from "next/link";
 
 const PROOFREAD_ONLY_NAME = "Proofread Only";
@@ -192,6 +193,9 @@ export default function Home() {
       {/* Voice-clone dialog — mounted ONCE here (StylePanel mounts twice: desktop
           sidebar + mobile drawer). Both triggers open it via the shared store. */}
       <VoiceCloneDialog />
+
+      {/* One-time discovery tip for the hidden MDR theme. */}
+      <MdrTipToast />
     </div>
   );
 }

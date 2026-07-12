@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 import { useTextRefineStore } from "@/lib/stores/text-refine";
 import { useSpeechInput } from "@/lib/use-speech-input";
 import { MAX_CHARACTERS, DEMO_SAMPLES } from "@/lib/constants";
-import { CharCounter } from "@/components/char-counter";
 import { Button } from "@/components/ui/button";
 
 export function InputPanel() {
